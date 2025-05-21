@@ -4,7 +4,8 @@ import { onMounted, ref } from 'vue'
 import { axios_api } from './scripts/global'
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 import Close from 'vue-material-design-icons/Close.vue'
-import ProductSideMenu from './components/ProductSideMenu.vue'
+import ProductMenuMain from '@/components/ProductMenuMain.vue'
+import ProductMenuMobile from '@/components/ProductMenuMobile.vue'
 
 const allCategories = ref([])
 const cartItemCount = ref(0)
@@ -48,106 +49,25 @@ function toggleMobileMenu() {
 
 <template>
   <!-- Mobile nav menu -->
-  <Transition name="mobile-nav-menu">
-    <div
-      class="mobile-nav bg-opacity-50 fixed top-28 right-0 bottom-0 left-0 z-50 overflow-y-auto overscroll-y-none bg-white backdrop-blur sm:hidden"
-      v-if="showMobileMenu"
-    >
-      <ul class="mb-8 w-full text-center">
-        <li class="py-2 font-semibold">
-          <RouterLink
-            @click="toggleMobileMenu"
-            class="main-nav-link rounded-lg transition-all"
-            to="/"
-            >Home</RouterLink
-          >
-        </li>
-        <li class="py-2 font-semibold">
-          <RouterLink
-            @click="toggleMobileMenu"
-            class="main-nav-link rounded-lg transition-all"
-            to="/about"
-            >About</RouterLink
-          >
-        </li>
-        <li class="py-2 font-semibold">
-          <RouterLink
-            @click="toggleMobileMenu"
-            class="main-nav-link rounded-lg transition-all"
-            to="/contact"
-            >Contact</RouterLink
-          >
-        </li>
-        <li class="py-2 font-semibold">
-          <RouterLink
-            @click="toggleMobileMenu"
-            class="main-nav-link rounded-lg transition-all"
-            to="/shipping"
-            >Shipping</RouterLink
-          >
-        </li>
-        <li class="py-2 font-semibold">
-          <RouterLink
-            @click="toggleMobileMenu"
-            class="main-nav-link rounded-lg transition-all"
-            to="/shopping-cart"
-            >Cart (<span class="text-sm font-semibold">{{ cartItemCount }}</span
-            >)</RouterLink
-          >
-        </li>
-        <li class="mt-2 mb-2 text-2xl">Products</li>
-        <li v-for="(category1, index) in lvl1Categories" :key="index" class="rounded-lg">
-          <RouterLink
-            :to="'/products/' + category1.category1Name + '/' + category1.category1ID"
-            class="block h-full w-full rounded-lg px-3 py-2 font-semibold transition-all"
-            @click="toggleMobileMenu"
-            >{{ category1.category1Name }}</RouterLink
-          >
-
-          <!-- Div wrapper for grid transition-->
-          <Transition>
-            <div class="grid grid-rows-[1fr]" v-if="true">
-              <div class="overflow-hidden">
-                <!-- Nav list for level 2 categories -->
-                <ul v-if="hasCategory2(category1.category1ID)">
-                  <li v-for="(category2, index) in lvl2ByID(category1.category1ID)" :key="index">
-                    <RouterLink
-                      :to="'/products/' + category2.category2Name + '/' + category1.category1ID"
-                      class="block rounded-lg py-1 pr-2 pl-4 transition-all"
-                      @click="toggleMobileMenu"
-                      >{{ category2.category2Name }}</RouterLink
-                    >
-
-                    <!-- Nav list for level 3 categories -->
-                    <ul v-if="hasCategory3(category2.category2ID)">
-                      <li
-                        v-for="(category3, index) in lvl3ByID(category2.category2ID)"
-                        :key="index"
-                      >
-                        <RouterLink
-                          :to="'/products/' + category3.category3Name + '/' + category1.category1ID"
-                          class="block rounded-lg py-1 pr-2 pl-8 font-thin transition-all"
-                          @click="toggleMobileMenu"
-                          >{{ category3.category3Name }}</RouterLink
-                        >
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </Transition>
-        </li>
-      </ul>
-    </div>
-  </Transition>
+  <div class="sm:hidden">
+    <Transition name="mobile-nav-menu">
+      <ProductMenuMobile
+        v-if="showMobileMenu"
+        :cart-item-count="cartItemCount"
+        @close-mobile-menu="showMobileMenu = false"
+      ></ProductMenuMobile>
+    </Transition>
+  </div>
 
   <header>
     <div class="bg-opacity-50 fixed top-0 right-0 left-0 h-28 bg-white backdrop-blur">
       <div
         class="bg-opacity-60 fixed top-5 right-6 left-6 z-40 flex flex-wrap items-center justify-center rounded-lg border border-blue-300 bg-blue-200 p-3 shadow shadow-blue-100"
       >
+        <!-- Company logo -->
         <img alt="Pentique logo" src="/images/logo.png" width="100" />
+
+        <!-- Main menu navigation -->
         <nav class="hidden p-2 sm:block">
           <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/">Home</RouterLink>
           <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/about"
@@ -169,7 +89,7 @@ function toggleMobileMenu() {
         ><button
           v-if="!showMobileMenu"
           @click="toggleMobileMenu"
-          class="absolute top-11 right-12 z-50 block sm:hidden"
+          class="absolute top-11 right-12 z-50 block cursor-pointer sm:hidden"
         >
           <menu-icon /></button
       ></Transition>
@@ -177,7 +97,7 @@ function toggleMobileMenu() {
         ><button
           v-if="showMobileMenu"
           @click="toggleMobileMenu"
-          class="absolute top-11 right-12 z-50 block sm:hidden"
+          class="absolute top-11 right-12 z-50 block cursor-pointer sm:hidden"
         >
           <close /></button
       ></Transition>
@@ -188,7 +108,8 @@ function toggleMobileMenu() {
     <div
       class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 shadow sm:block"
     >
-      <ProductSideMenu></ProductSideMenu>
+      <!-- Product side menu -->
+      <ProductMenuMain></ProductMenuMain>
     </div>
 
     <div
@@ -212,28 +133,6 @@ function toggleMobileMenu() {
 .category-item:hover {
   background-color: rgba(138, 172, 233, 0.659);
   cursor: pointer;
-}
-
-/* Router Trainsitions */
-.v-enter-active,
-.v-leave-active {
-  transition: grid-template-rows 0.3s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  grid-template-rows: 0fr;
-}
-
-.mobile-nav-menu-enter-active,
-.mobile-nav-menu-leave-active {
-  transition: all 0.3s ease;
-}
-
-.mobile-nav-menu-enter-from,
-.mobile-nav-menu-leave-to {
-  transform: translateY(-500px);
-  opacity: 0;
 }
 
 .mobileMenuButton-enter-active,
@@ -268,7 +167,14 @@ function toggleMobileMenu() {
   background: rgb(130, 130, 249);
 }
 
-.mobile-nav::-webkit-scrollbar {
-  width: 0px;
+.mobile-nav-menu-enter-active,
+.mobile-nav-menu-leave-active {
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-menu-enter-from,
+.mobile-nav-menu-leave-to {
+  transform: translateY(-500px);
+  opacity: 0;
 }
 </style>

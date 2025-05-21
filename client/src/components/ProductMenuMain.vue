@@ -99,27 +99,6 @@ function currentCategory(category1ID) {
   grid-template-rows: 0fr;
 }
 
-.mobile-nav-menu-enter-active,
-.mobile-nav-menu-leave-active {
-  transition: all 0.3s ease;
-}
-
-.mobile-nav-menu-enter-from,
-.mobile-nav-menu-leave-to {
-  transform: translateY(-500px);
-  opacity: 0;
-}
-
-.mobileMenuButton-enter-active,
-.mobileMenuButton-leave-active {
-  transition: opacity 0.5s ease-in-out;
-}
-
-.mobileMenuButton-enter-from,
-.mobileMenuButton-leave-to {
-  opacity: 0;
-}
-
 /* Scrollbar width */
 ::-webkit-scrollbar {
   width: 8px;
