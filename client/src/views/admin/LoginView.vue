@@ -28,7 +28,7 @@ async function login() {
     localStorage.setItem('pentique_auth_token', response.data.token) // Store the token in local storage
     localStorage.setItem('user', JSON.stringify(response.data.user)) // Store the user data in local storage
 
-    router.push({ name: 'home' })
+    router.push({ name: 'admin' })
   } catch (err) {
     console.error('Error:', err)
   }
