@@ -8,9 +8,12 @@ import ShoppingCart from '@/views/ShoppingCart.vue'
 import CheckoutView from '@/views/CheckoutView.vue'
 import OrderSuccess from '@/views/OrderSuccess.vue'
 import OrderFailure from '@/views/OrderFailure.vue'
+import AdminHomeView from '@/views/admin/AdminHomeView.vue'
 import AdminView from '@/views/admin/AdminView.vue'
 import LoginView from '@/views/admin/LoginView.vue'
 import StoreFrontView from '@/views/StoreFrontView.vue'
+import EditCategoriesView from '@/views/admin/EditCategoriesView.vue'
+import { validateToken } from '@/scripts/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -76,11 +79,22 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'admin',
       component: AdminView,
       meta: {
         requiresAuth: true,
       },
+      children: [
+        {
+          path: '',
+          name: 'admin-home',
+          component: AdminHomeView,
+        },
+        {
+          path: '/admin/edit-categories',
+          name: 'edit-categories',
+          component: EditCategoriesView,
+        },
+      ],
     },
     {
       path: '/login',
@@ -88,6 +102,21 @@ const router = createRouter({
       component: LoginView,
     },
   ],
+})
+
+// Navigation guard to check authentication before accessing routes
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth) {
+    const tokenValidation = validateToken()
+    if (tokenValidation.valid) {
+      next() // Allow navigation
+    } else {
+      console.warn('Access denied:', tokenValidation.reason)
+      next({ name: 'login' }) // Redirect to login
+    }
+  } else {
+    next() // Allow navigation for routes without `requiresAuth`
+  }
 })
 
 export default router

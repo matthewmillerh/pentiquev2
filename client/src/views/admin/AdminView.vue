@@ -1,29 +1,16 @@
 <script setup>
-import AdminProductMenuMain from '@/components/admin/AdminProductMenuMain.vue'
-import { axios_api } from '@/scripts/global.js'
-import { onMounted, ref } from 'vue'
-
-const allCategories = ref([])
-
-onMounted(() => {
-  getAllCategories()
-})
-
-//get all the categories and subcategories
-async function getAllCategories() {
-  try {
-    const response = await axios_api.get('/get-all-categories')
-    allCategories.value = response.data
-  } catch (err) {
-    console.log(err)
-  }
-}
+import { RouterView } from 'vue-router'
+import AdminMainNavMenu from '@/components/admin/AdminMainNavMenu.vue'
 </script>
 
 <template>
-  <main></main>
-  <AdminProductMenuMain
-    v-if="allCategories.length"
-    :productData="allCategories"
-  ></AdminProductMenuMain>
+  <header>
+    <AdminMainNavMenu></AdminMainNavMenu>
+  </header>
+  <div class="mt-28">
+    <router-view v-slot="{ Component }">
+      <component :is="Component" />
+    </router-view>
+  </div>
 </template>
+

@@ -11,7 +11,7 @@ const router = useRouter()
 // Check if the user is already logged in and validate the token
 const tokenValidation = validateToken()
 if (tokenValidation.valid) {
-  router.push({ name: 'admin' }) // Redirect to admin home
+  router.push({ name: 'admin-home' }) // Redirect to admin home
 } else {
   console.warn('Token validation failed:', tokenValidation.reason)
   router.push({ name: 'login' }) // Redirect to login
@@ -28,7 +28,7 @@ async function login() {
     localStorage.setItem('pentique_auth_token', response.data.token) // Store the token in local storage
     localStorage.setItem('user', JSON.stringify(response.data.user)) // Store the user data in local storage
 
-    router.push({ name: 'admin' })
+    router.push({ name: 'admin-home' })
   } catch (err) {
     console.error('Error:', err)
   }
@@ -69,3 +69,4 @@ async function login() {
     </div>
   </div>
 </template>
+
