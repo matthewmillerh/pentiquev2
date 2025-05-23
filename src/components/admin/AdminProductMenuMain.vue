@@ -111,7 +111,7 @@ function resetModal() {
   <GeneralModal
     v-if="showModal"
     @close-modal="resetModal()"
-    :category="currentCategory"
+    :title="currentCategory"
     :message="modalMessage"
   ></GeneralModal>
 </template>

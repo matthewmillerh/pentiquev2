@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 
 defineProps({
-  category: String,
+  title: String,
   message: String,
 })
 
@@ -15,6 +15,10 @@ onMounted(() => {
 
 const close = () => {
   show.value = false
+}
+
+const confirm = () => {
+  close()
 }
 </script>
 
@@ -29,18 +33,25 @@ const close = () => {
         class="modal absolute top-52 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 text-lg font-semibold shadow-md"
         @click.stop
       >
-        <div>{{ category }}</div>
+        <div>{{ title }}</div>
         <div class="font-normal">{{ message }}</div>
+        <div>
+          <input
+            type="text"
+            class="w-72 rounded-lg border border-blue-300 px-2 py-1 shadow-md focus:outline-1 focus:outline-blue-700"
+            @keyup.enter="confirm"
+          />
+        </div>
         <div class="flex gap-2">
           <button
-            class="inline-flex cursor-pointer items-center justify-center rounded-md bg-red-300 px-2 py-1"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md bg-red-300 px-2 py-1 shadow-md"
             @click="close"
           >
             <span>Cancel</span>
           </button>
           <button
-            class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1"
-            @click="close"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1 shadow-md"
+            @click="confirm"
           >
             <span>Confirm</span>
           </button>
