@@ -20,6 +20,7 @@ import {
   faArrowUpRightFromSquare,
   faDiagramProject,
   faTrash,
+  faEdit,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithub,
@@ -53,6 +54,7 @@ library.add(
   faArrowUpRightFromSquare,
   faDiagramProject,
   faTrash,
+  faEdit,
 )
 
 import App from './App.vue'
@@ -68,3 +70,4 @@ app.use(VueViewer)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.mount('#app')
+

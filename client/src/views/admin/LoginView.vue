@@ -3,6 +3,7 @@ import { axios_api } from '@/scripts/global'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { validateToken } from '@/scripts/auth'
+import { onMounted, onUnmounted } from 'vue'
 
 const userEmail = ref('')
 const userPassword = ref('')
@@ -18,7 +19,7 @@ if (tokenValidation.valid) {
 }
 
 // Attempt to log the user in
-async function login() {
+const login = async () => {
   try {
     // Send email and password in the request body
     const response = await axios_api.post('/login', {
@@ -33,6 +34,21 @@ async function login() {
     console.error('Error:', err)
   }
 }
+
+// Event listener for 'enter' key to trigger login button
+const handleKeyup = (event) => {
+  if (event.key === 'Enter') {
+    login()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keyup', handleKeyup)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keyup', handleKeyup)
+})
 </script>
 <template>
   <div class="fixed top-0 right-0 bottom-0 left-0 flex items-center justify-center">
