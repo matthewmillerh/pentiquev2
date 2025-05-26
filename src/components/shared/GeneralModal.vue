@@ -1,24 +1,44 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
+
+const categoryName = ref('')
+const categoryInput = ref(null)
+const showError = ref(false) // used to show an error message when the input field is empty
 
 defineProps({
   title: String,
   message: String,
 })
 
+const emit = defineEmits(['confirm-action', 'close-modal'])
+
 const show = ref(false) // used to trigger the vue transition when the notification component is mounted
 
 // set the value to true only after the component has been mounted in order for the transtion to be triggered
 onMounted(() => {
   show.value = true
+
+  // Set focus on the input field for the new category name
+  nextTick(() => {
+    if (categoryInput.value) {
+      categoryInput.value.focus()
+    }
+  })
 })
 
+// Closes the modal
 const close = () => {
   show.value = false
 }
 
+// Triggers the confirm-action function in the parent component and then closes the modal
 const confirm = () => {
-  close()
+  if (!categoryName.value.trim()) {
+    showError.value = true
+  } else {
+    emit('confirm-action', categoryName.value)
+    close()
+  }
 }
 </script>
 
@@ -39,8 +59,14 @@ const confirm = () => {
           <input
             type="text"
             class="w-72 rounded-lg border border-blue-300 px-2 py-1 shadow-md focus:outline-1 focus:outline-blue-700"
-            @keyup.enter="confirm"
+            v-model="categoryName"
+            @keyup.enter.prevent="confirm()"
+            ref="categoryInput"
+            required
           />
+        </div>
+        <div v-if="showError" class="text-sm">
+          <span class="text-red-500">This field cannot be empty.</span>
         </div>
         <div class="flex gap-2">
           <button
@@ -51,7 +77,7 @@ const confirm = () => {
           </button>
           <button
             class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1 shadow-md"
-            @click="confirm"
+            @click="confirm()"
           >
             <span>Confirm</span>
           </button>
