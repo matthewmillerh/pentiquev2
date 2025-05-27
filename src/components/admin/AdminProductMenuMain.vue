@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import EditButton from '@/components/admin/EditButton.vue'
 import DeleteButton from '@/components/admin/DeleteButton.vue'
 import RenameCategoryModal from '@/components/admin/RenameCategoryModal.vue'
+import DeleteCategoryModal from '@/components/admin/DeleteCategoryModal.vue'
 import { axios_api } from '@/scripts/global'
 import CreateCategoryModal from './CreateCategoryModal.vue'
 
@@ -10,6 +11,7 @@ const allCategories = ref([])
 const props = defineProps(['productData'])
 const showRenameModal = ref(false)
 const showCreateModal = ref(false)
+const showDeleteModal = ref(false)
 const currentCategory = ref(null)
 const currentCategoryID = ref(null)
 const currentCategoryLevel = ref(null)
@@ -19,7 +21,8 @@ onMounted(() => {
   allCategories.value = JSON.parse(JSON.stringify(props.productData)) // Create a deep copy of the producData prop
 })
 
-function renameCategory(category, id, categoryLevel) {
+// Function to handle renaming a category
+const renameCategory = (category, id, categoryLevel) => {
   currentCategory.value = category // Stores the name of the category being edited
   currentCategoryID.value = id // Stores the ID of the category being edited
   currentCategoryLevel.value = categoryLevel // Stores the category level of the category being edited
@@ -28,11 +31,22 @@ function renameCategory(category, id, categoryLevel) {
   showRenameModal.value = true
 }
 
-function resetModal() {
+// Function to handle creating a new category
+const createCategory = (level, parentID) => {
+  currentCategoryLevel.value = level
+  currentCategoryID.value = parentID || null // If creating a top-level category, parentID will be null
+  modalMessage.value = 'Enter the new category name:'
+  showCreateModal.value = true
+}
+
+// Reset the modal state after closing it
+const resetModals = () => {
   currentCategory.value = null
   currentCategoryID.value = null
   currentCategoryLevel.value = null
   showRenameModal.value = false
+  showCreateModal.value = false
+  showDeleteModal.value = false
 }
 
 // Save the new category name to the database
@@ -76,22 +90,70 @@ const confirmUpdate = async (newCategoryName) => {
       // Reset the modal and display error messages
       if (categoryFoundAndUpdated) {
         console.log('Category name updated in UI successfully!')
-        resetModal()
+        resetModals()
       } else {
         console.warn(
           'Category not found in local data after successful API update. This might indicate a data mismatch or an issue in your search logic.',
         )
-        resetModal()
+        resetModals()
       }
     } else {
       console.warn('API call successful, but unexpected status:', response.status)
       alert('Category update failed or no change needed.')
-      resetModal()
+      resetModals()
     }
   } catch (err) {
     console.error('Error updating category name:', err)
     alert('Failed to update category name. Please try again. Check console for details.')
-    resetModal()
+    resetModals()
+  }
+}
+
+// Save the new category to the database
+const confirmCreate = async (newCategoryName) => {
+  try {
+    const response = await axios_api.post('/categories/create', {
+      categoryName: newCategoryName,
+      categoryLevel: currentCategoryLevel.value,
+      parentId: currentCategoryID.value,
+    })
+
+    if (response.status === 201) {
+      // Add the new category to the allCategories array
+      const newCategory = {
+        id: response.data.id,
+        name: newCategoryName,
+        subcategories: [],
+      }
+
+      if (currentCategoryLevel.value === 1) {
+        allCategories.value.push(newCategory)
+      } else if (currentCategoryLevel.value === 2) {
+        const parentCategory = allCategories.value.find((cat) => cat.id === response.data.parentId)
+        if (parentCategory) {
+          parentCategory.subcategories.push(newCategory)
+        }
+      } else if (currentCategoryLevel.value === 3) {
+        for (const category of allCategories.value) {
+          for (const subcategory of category.subcategories) {
+            if (subcategory.id === response.data.parentId) {
+              subcategory.subcategories.push(newCategory)
+              break
+            }
+          }
+        }
+      }
+
+      resetModals()
+    } else {
+      console.warn('API call successful, but unexpected status:', response.status)
+      alert('Failed to create category. Please try again.')
+      resetModals()
+    }
+  } catch (err) {
+    console.error('Error creating category:', err)
+    alert('Failed to create category. Please try again. Check console for details.')
+    resetModals()
   }
 }
 </script>
@@ -151,38 +213,58 @@ const confirmUpdate = async (newCategoryName) => {
                 </div>
               </li>
               <li
-                class="mt-4 mb-2 cursor-pointer rounded-lg bg-white p-2 text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
+                class="mt-4 mb-2 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
               >
-                <p>+ Add new level 3 category</p>
+                <button class="cursor-pointer p-2" @click="createCategory(3, category2.id)">
+                  + Add new level 3 category
+                </button>
               </li>
             </ul>
           </li>
         </ul>
       </li>
       <li
-        class="mt-4 mb-2 cursor-pointer rounded-lg bg-blue-100 p-2 text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
+        class="mt-4 mb-2 rounded-lg bg-blue-100 text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
       >
-        <p>+ Add new level 2 category</p>
+        <button class="cursor-pointer p-2" @click="createCategory(2, category1.id)">
+          + Add new level 2 category
+        </button>
       </li>
     </ul>
     <ul
-      class="mt-4 cursor-pointer rounded-lg bg-white p-4 text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
+      class="mt-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
     >
-      <li><p>+ Add new top level category</p></li>
+      <li>
+        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null)">
+          + Add new top level category
+        </button>
+      </li>
     </ul>
   </div>
 
+  <!-- Modal for renaming categories -->
   <RenameCategoryModal
     v-if="showRenameModal"
     :title="currentCategory"
-    @close="resetModal()"
+    @close="resetModals()"
     @update="(categoryName) => confirmUpdate(categoryName)"
   ></RenameCategoryModal>
+
+  <!-- Modal for creating new categories -->
   <CreateCategoryModal
     v-if="showCreateModal"
-    :title="currentCategory"
-    @close="resetModal()"
-    @update="(categoryName) => confirmUpdate(categoryName)"
+    :title="`Create a New Category (Level: ${currentCategoryLevel || ''})`"
+    @close="resetModals()"
+    @create="(categoryName) => confirmCreate(categoryName)"
   ></CreateCategoryModal>
+
+  <!-- Modal for deleting a category -->
+  <DeleteCategoryModal
+    v-if="showDeleteModal"
+    :title="currentCategory"
+    @close="resetModals()"
+    @delete="confirmDelete"
+  ></DeleteCategoryModal>
 </template>
+
 <style scoped></style>

@@ -7,7 +7,7 @@ const categoryInput = ref(null)
 const showError = ref(false) // used to show an error message when the input field is empty
 const modalWrapper = ref(null)
 
-const emit = defineEmits(['udpate', 'close'])
+const emit = defineEmits(['create', 'close'])
 
 defineProps({
   title: String,
@@ -27,7 +27,7 @@ const confirm = () => {
   if (!categoryName.value.trim()) {
     showError.value = true
   } else {
-    emit('update', categoryName.value)
+    emit('create', categoryName.value)
     closeWrapper()
   }
 }
