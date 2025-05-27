@@ -2,12 +2,14 @@
 import { onMounted, ref } from 'vue'
 import EditButton from '@/components/admin/EditButton.vue'
 import DeleteButton from '@/components/admin/DeleteButton.vue'
-import GeneralModal from '@/components/shared/GeneralModal.vue'
+import RenameCategoryModal from '@/components/admin/RenameCategoryModal.vue'
 import { axios_api } from '@/scripts/global'
+import CreateCategoryModal from './CreateCategoryModal.vue'
 
 const allCategories = ref([])
 const props = defineProps(['productData'])
-const showModal = ref(false)
+const showRenameModal = ref(false)
+const showCreateModal = ref(false)
 const currentCategory = ref(null)
 const currentCategoryID = ref(null)
 const currentCategoryLevel = ref(null)
@@ -23,14 +25,14 @@ function renameCategory(category, id, categoryLevel) {
   currentCategoryLevel.value = categoryLevel // Stores the category level of the category being edited
 
   modalMessage.value = 'Enter the new category name:'
-  showModal.value = true
+  showRenameModal.value = true
 }
 
 function resetModal() {
   currentCategory.value = null
   currentCategoryID.value = null
   currentCategoryLevel.value = null
-  showModal.value = false
+  showRenameModal.value = false
 }
 
 // Save the new category name to the database
@@ -170,12 +172,17 @@ const confirmUpdate = async (newCategoryName) => {
     </ul>
   </div>
 
-  <GeneralModal
-    v-if="showModal"
-    @close-modal="resetModal()"
-    @confirm-action="(categoryName) => confirmUpdate(categoryName)"
+  <RenameCategoryModal
+    v-if="showRenameModal"
     :title="currentCategory"
-    :message="modalMessage"
-  ></GeneralModal>
+    @close="resetModal()"
+    @update="(categoryName) => confirmUpdate(categoryName)"
+  ></RenameCategoryModal>
+  <CreateCategoryModal
+    v-if="showCreateModal"
+    :title="currentCategory"
+    @close="resetModal()"
+    @update="(categoryName) => confirmUpdate(categoryName)"
+  ></CreateCategoryModal>
 </template>
 <style scoped></style>
