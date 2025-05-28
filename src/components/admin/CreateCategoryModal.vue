@@ -1,6 +1,8 @@
 <script setup>
 import { nextTick, onMounted, ref } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
+import CancelButton from '../shared/buttons/CancelButton.vue'
+import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 
 const categoryName = ref('')
 const categoryInput = ref(null)
@@ -67,18 +69,8 @@ const unMount = () => {
       <span class="text-red-500">This field cannot be empty.</span>
     </div>
     <div class="flex gap-2">
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-red-300 px-2 py-1 shadow-md"
-        @click="closeWrapper"
-      >
-        <span>Cancel</span>
-      </button>
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1 shadow-md"
-        @click="confirm()"
-      >
-        <span>Confirm</span>
-      </button>
+      <CancelButton @close="closeWrapper()"></CancelButton>
+      <ConfirmButton @confirm="confirm()"></ConfirmButton>
     </div>
   </ModalWrapper>
 </template>

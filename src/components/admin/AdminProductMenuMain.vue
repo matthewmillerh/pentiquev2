@@ -1,12 +1,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import EditButton from '@/components/admin/EditButton.vue'
-import DeleteButton from '@/components/admin/DeleteButton.vue'
+import EditButton from '@/components/shared/buttons/EditButton.vue'
+import DeleteButton from '@/components/shared/buttons/DeleteButton.vue'
 import RenameCategoryModal from '@/components/admin/RenameCategoryModal.vue'
 import DeleteCategoryModal from '@/components/admin/DeleteCategoryModal.vue'
 import { axios_api } from '@/scripts/global'
 import CreateCategoryModal from './CreateCategoryModal.vue'
-import AddButton from './AddButton.vue'
+import AddButton from '../shared/buttons/AddButton.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const allCategories = ref([])
 const props = defineProps(['productData'])
@@ -209,11 +210,18 @@ const confirmDelete = async () => {
       class="mb-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
     >
       <li>
-        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null, '')">
-          + Add new top level category
+        <button
+          class="flex h-full w-full cursor-pointer items-center justify-center p-4"
+          @click="createCategory(1, null, '')"
+        >
+          <span class="mr-2">
+            <font-awesome-icon :icon="['fas', 'square-plus']" style="color: black" />
+          </span>
+          <span>Add new top level category</span>
         </button>
       </li>
     </ul>
+    <!-- Category List -->
     <ul
       v-for="category1 in allCategories"
       :key="category1.id"
@@ -226,21 +234,21 @@ const confirmDelete = async () => {
           <div class="ml-auto">
             <AddButton
               text="Add Subcategory"
-              @click="createCategory(2, category1.id, `${category1.name}/`)"
+              @add="createCategory(2, category1.id, `${category1.name}/`)"
             ></AddButton>
             <EditButton
               text="Rename"
-              @click="renameCategory(category1.name, category1.id, 1)"
+              @edit="renameCategory(category1.name, category1.id, 1)"
               class="ml-1"
             ></EditButton>
             <DeleteButton
               text="Delete"
               class="ml-1"
-              @click="deleteCategory(1, category1.id, category1.name, category1.name)"
+              @delete="deleteCategory(1, category1.id, category1.name, category1.name)"
             ></DeleteButton>
           </div>
         </div>
-
+        <!-- Category level 2 List -->
         <ul
           v-for="category2 in category1.subcategories"
           :key="category2.id"
@@ -252,15 +260,15 @@ const confirmDelete = async () => {
 
               <div class="ml-auto">
                 <AddButton
-                  @click="createCategory(3, category2.id, `${category1.name}/${category2.name}/`)"
+                  @add="createCategory(3, category2.id, `${category1.name}/${category2.name}/`)"
                 ></AddButton>
                 <EditButton
-                  @click="renameCategory(category2.name, category2.id, 2)"
+                  @edit="renameCategory(category2.name, category2.id, 2)"
                   class="ml-1"
                 ></EditButton>
                 <DeleteButton
                   class="ml-1"
-                  @click="
+                  @delete="
                     deleteCategory(
                       2,
                       category2.id,
@@ -272,6 +280,7 @@ const confirmDelete = async () => {
               </div>
             </div>
 
+            <!-- Category level 3 List -->
             <ul>
               <li
                 v-for="category3 in category2.subcategories"
@@ -283,11 +292,11 @@ const confirmDelete = async () => {
 
                   <div class="ml-auto">
                     <EditButton
-                      @click="renameCategory(category3.name, category3.id, 3)"
+                      @edit="renameCategory(category3.name, category3.id, 3)"
                     ></EditButton>
                     <DeleteButton
                       class="ml-1"
-                      @click="
+                      @delete="
                         deleteCategory(
                           3,
                           category3.id,

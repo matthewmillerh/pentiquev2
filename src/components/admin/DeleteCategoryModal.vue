@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
-import CancelButton from '../shared/CancelButton.vue'
-import ConfirmButton from '../shared/ConfirmButton.vue'
+import CancelButton from '../shared/buttons/CancelButton.vue'
+import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 
 const categoryName = ref('')
 const modalWrapper = ref(null)

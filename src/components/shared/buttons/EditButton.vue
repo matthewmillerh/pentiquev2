@@ -6,7 +6,10 @@ defineProps({
 })
 </script>
 <template>
-  <button class="cursor-pointer rounded-lg bg-green-300 px-2 py-1 text-sm font-semibold shadow-md">
+  <button
+    class="cursor-pointer rounded-lg bg-green-300 px-2 py-1 text-sm font-semibold shadow-md"
+    @click="$emit('edit')"
+  >
     <font-awesome-icon :icon="['fas', 'edit']" style="color: black" />
     <span v-if="text" class="ml-1">{{ text }}</span>
   </button>
