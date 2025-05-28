@@ -34,9 +34,10 @@ const renameCategory = (category, id, categoryLevel) => {
 }
 
 // Function to handle creating a new category
-const createCategory = (level, parentID) => {
+const createCategory = (level, parentID, path) => {
   currentCategoryLevel.value = level
   currentCategoryID.value = parentID || null // If creating a top-level category, parentID will be null
+  categoryPath.value = path
   modalMessage.value = 'Enter the new category name:'
   showCreateModal.value = true
 }
@@ -55,6 +56,7 @@ const resetModals = () => {
   currentCategory.value = null
   currentCategoryID.value = null
   currentCategoryLevel.value = null
+  categoryPath.value = ''
   showRenameModal.value = false
   showCreateModal.value = false
   showDeleteModal.value = false
@@ -122,11 +124,13 @@ const confirmUpdate = async (newCategoryName) => {
 
 // Save the new category to the database
 const confirmCreate = async (newCategoryName) => {
+  categoryPath.value += newCategoryName
   try {
     const response = await axios_api.post('/categories/create', {
       categoryName: newCategoryName,
       categoryLevel: currentCategoryLevel.value,
       parentId: currentCategoryID.value,
+      categoryPath: categoryPath.value,
     })
 
     if (response.status === 201) {
@@ -205,7 +209,7 @@ const confirmDelete = async () => {
       class="mb-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
     >
       <li>
-        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null)">
+        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null, '')">
           + Add new top level category
         </button>
       </li>
@@ -220,7 +224,10 @@ const confirmDelete = async () => {
           <input class="text-lg font-bold" :value="category1.name" disabled />
 
           <div class="ml-auto">
-            <AddButton text="Add Subcategory" @click="createCategory(2, category1.id)"></AddButton>
+            <AddButton
+              text="Add Subcategory"
+              @click="createCategory(2, category1.id, `${category1.name}/`)"
+            ></AddButton>
             <EditButton
               text="Rename"
               @click="renameCategory(category1.name, category1.id, 1)"
@@ -244,7 +251,9 @@ const confirmDelete = async () => {
               <span class="font-semibold">{{ category2.name }}</span>
 
               <div class="ml-auto">
-                <AddButton @click="createCategory(3, category2.id)"></AddButton>
+                <AddButton
+                  @click="createCategory(3, category2.id, `${category1.name}/${category2.name}/`)"
+                ></AddButton>
                 <EditButton
                   @click="renameCategory(category2.name, category2.id, 2)"
                   class="ml-1"
