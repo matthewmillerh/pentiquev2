@@ -1,13 +1,15 @@
 <script setup>
 import { nextTick, onMounted, ref } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
+import CancelButton from '../shared/CancelButton.vue'
+import ConfirmButton from '../shared/ConfirmButton.vue'
 
 const categoryName = ref('')
 const categoryInput = ref(null)
 const showError = ref(false) // used to show an error message when the input field is empty
 const modalWrapper = ref(null)
 
-const emit = defineEmits(['udpate', 'close'])
+const emit = defineEmits(['delete', 'close'])
 
 defineProps({
   title: String,
@@ -27,7 +29,7 @@ const confirm = () => {
   if (!categoryName.value.trim()) {
     showError.value = true
   } else {
-    emit('update', categoryName.value)
+    emit('delete', categoryName.value)
     closeWrapper()
   }
 }
@@ -49,7 +51,7 @@ const unMount = () => {
 <template>
   <ModalWrapper
     :title="title"
-    message="Enter the new category name:"
+    message="Confirm that you want to delete this category."
     @close="unMount()"
     ref="modalWrapper"
   >
@@ -67,18 +69,8 @@ const unMount = () => {
       <span class="text-red-500">This field cannot be empty.</span>
     </div>
     <div class="flex gap-2">
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-red-300 px-2 py-1 shadow-md"
-        @click="closeWrapper"
-      >
-        <span>Cancel</span>
-      </button>
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1 shadow-md"
-        @click="confirm()"
-      >
-        <span>Confirm</span>
-      </button>
+      <CancelButton @close="closeWrapper()"></CancelButton>
+      <ConfirmButton @confirm="confirm()"></ConfirmButton>
     </div>
   </ModalWrapper>
 </template>

@@ -23,9 +23,9 @@ onMounted(() => {
 
 // Function to handle renaming a category
 const renameCategory = (category, id, categoryLevel) => {
-  currentCategory.value = category // Stores the name of the category being edited
-  currentCategoryID.value = id // Stores the ID of the category being edited
-  currentCategoryLevel.value = categoryLevel // Stores the category level of the category being edited
+  currentCategory.value = category
+  currentCategoryID.value = id
+  currentCategoryLevel.value = categoryLevel
 
   modalMessage.value = 'Enter the new category name:'
   showRenameModal.value = true
@@ -37,6 +37,13 @@ const createCategory = (level, parentID) => {
   currentCategoryID.value = parentID || null // If creating a top-level category, parentID will be null
   modalMessage.value = 'Enter the new category name:'
   showCreateModal.value = true
+}
+
+// Function to handle deleting a category
+const deleteCategory = (level, id) => {
+  currentCategoryLevel.value = level
+  currentCategoryID.value = id
+  showDeleteModal.value = true
 }
 
 // Reset the modal state after closing it
@@ -156,6 +163,33 @@ const confirmCreate = async (newCategoryName) => {
     resetModals()
   }
 }
+
+// delete the category from the database
+const confirmDelete = async () => {
+  try {
+    const response = await axios_api.delete('/categories/delete', {
+      data: {
+        categoryLevel: currentCategoryLevel.value,
+        categoryID: currentCategoryID.value,
+      },
+    })
+
+    if (response.status === 200) {
+      // Remove the category from the allCategories array
+      allCategories.value = allCategories.value.filter((cat) => cat.id !== currentCategoryID.value)
+      console.log('Category deleted successfully!')
+      resetModals()
+    } else {
+      console.warn('API call successful, but unexpected status:', response.status)
+      alert('Failed to delete category. Please try again.')
+      resetModals()
+    }
+  } catch (err) {
+    console.error('Error deleting category:', err)
+    alert('Failed to delete category. Please try again. Check console for details.')
+    resetModals()
+  }
+}
 </script>
 
 <template>
@@ -176,7 +210,11 @@ const confirmCreate = async (newCategoryName) => {
               text="Rename"
               @click="renameCategory(category1.name, category1.id, 1)"
             ></EditButton>
-            <DeleteButton text="Delete" class="ml-1"></DeleteButton>
+            <DeleteButton
+              text="Delete"
+              class="ml-1"
+              @click="deleteCategory(1, category1.id)"
+            ></DeleteButton>
           </div>
         </div>
 
@@ -191,7 +229,7 @@ const confirmCreate = async (newCategoryName) => {
 
               <div class="ml-auto">
                 <EditButton @click="renameCategory(category2.name, category2.id, 2)"></EditButton>
-                <DeleteButton class="ml-1"></DeleteButton>
+                <DeleteButton class="ml-1" @click="deleteCategory(2, category2.id)"></DeleteButton>
               </div>
             </div>
 
@@ -208,7 +246,10 @@ const confirmCreate = async (newCategoryName) => {
                     <EditButton
                       @click="renameCategory(category3.name, category3.id, 3)"
                     ></EditButton>
-                    <DeleteButton class="ml-1"></DeleteButton>
+                    <DeleteButton
+                      class="ml-1"
+                      @click="deleteCategory(3, category3.id)"
+                    ></DeleteButton>
                   </div>
                 </div>
               </li>
@@ -263,7 +304,7 @@ const confirmCreate = async (newCategoryName) => {
     v-if="showDeleteModal"
     :title="currentCategory"
     @close="resetModals()"
-    @delete="confirmDelete"
+    @delete="confirmDelete()"
   ></DeleteCategoryModal>
 </template>
 
