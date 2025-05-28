@@ -17,6 +17,7 @@ const currentCategory = ref(null)
 const currentCategoryID = ref(null)
 const currentCategoryLevel = ref(null)
 const modalMessage = ref('')
+const categoryPath = ref('')
 
 onMounted(() => {
   allCategories.value = JSON.parse(JSON.stringify(props.productData)) // Create a deep copy of the producData prop
@@ -41,10 +42,11 @@ const createCategory = (level, parentID) => {
 }
 
 // Function to handle deleting a category
-const deleteCategory = (level, id, category) => {
+const deleteCategory = (level, id, category, path) => {
   currentCategory.value = category
   currentCategoryLevel.value = level
   currentCategoryID.value = id
+  categoryPath.value = path
   showDeleteModal.value = true
 }
 
@@ -173,6 +175,7 @@ const confirmDelete = async () => {
       data: {
         categoryLevel: currentCategoryLevel.value,
         categoryID: currentCategoryID.value,
+        categoryPath: categoryPath.value,
       },
     })
 
@@ -226,7 +229,7 @@ const confirmDelete = async () => {
             <DeleteButton
               text="Delete"
               class="ml-1"
-              @click="deleteCategory(1, category1.id, category1.name)"
+              @click="deleteCategory(1, category1.id, category1.name, category1.name)"
             ></DeleteButton>
           </div>
         </div>
@@ -248,7 +251,14 @@ const confirmDelete = async () => {
                 ></EditButton>
                 <DeleteButton
                   class="ml-1"
-                  @click="deleteCategory(2, category2.id, category2.name)"
+                  @click="
+                    deleteCategory(
+                      2,
+                      category2.id,
+                      category2.name,
+                      `${category1.name}/${category2.name}`,
+                    )
+                  "
                 ></DeleteButton>
               </div>
             </div>
@@ -268,7 +278,14 @@ const confirmDelete = async () => {
                     ></EditButton>
                     <DeleteButton
                       class="ml-1"
-                      @click="deleteCategory(3, category3.id, category3.name)"
+                      @click="
+                        deleteCategory(
+                          3,
+                          category3.id,
+                          category3.name,
+                          `${category1.name}/${category2.name}/${category3.name}`,
+                        )
+                      "
                     ></DeleteButton>
                   </div>
                 </div>
