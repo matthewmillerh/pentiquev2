@@ -6,6 +6,7 @@ import RenameCategoryModal from '@/components/admin/RenameCategoryModal.vue'
 import DeleteCategoryModal from '@/components/admin/DeleteCategoryModal.vue'
 import { axios_api } from '@/scripts/global'
 import CreateCategoryModal from './CreateCategoryModal.vue'
+import AddButton from './AddButton.vue'
 
 const allCategories = ref([])
 const props = defineProps(['productData'])
@@ -40,7 +41,8 @@ const createCategory = (level, parentID) => {
 }
 
 // Function to handle deleting a category
-const deleteCategory = (level, id) => {
+const deleteCategory = (level, id, category) => {
+  currentCategory.value = category
   currentCategoryLevel.value = level
   currentCategoryID.value = id
   showDeleteModal.value = true
@@ -197,6 +199,15 @@ const confirmDelete = async () => {
     class="mx-auto max-h-[80%] w-[50%] max-w-[50%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 p-4 shadow"
   >
     <ul
+      class="mb-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
+    >
+      <li>
+        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null)">
+          + Add new top level category
+        </button>
+      </li>
+    </ul>
+    <ul
       v-for="category1 in allCategories"
       :key="category1.id"
       class="mb-4 rounded-lg bg-white p-4 shadow-md"
@@ -206,14 +217,16 @@ const confirmDelete = async () => {
           <input class="text-lg font-bold" :value="category1.name" disabled />
 
           <div class="ml-auto">
+            <AddButton text="Add Subcategory" @click="createCategory(2, category1.id)"></AddButton>
             <EditButton
               text="Rename"
               @click="renameCategory(category1.name, category1.id, 1)"
+              class="ml-1"
             ></EditButton>
             <DeleteButton
               text="Delete"
               class="ml-1"
-              @click="deleteCategory(1, category1.id)"
+              @click="deleteCategory(1, category1.id, category1.name)"
             ></DeleteButton>
           </div>
         </div>
@@ -228,8 +241,15 @@ const confirmDelete = async () => {
               <span class="font-semibold">{{ category2.name }}</span>
 
               <div class="ml-auto">
-                <EditButton @click="renameCategory(category2.name, category2.id, 2)"></EditButton>
-                <DeleteButton class="ml-1" @click="deleteCategory(2, category2.id)"></DeleteButton>
+                <AddButton @click="createCategory(3, category2.id)"></AddButton>
+                <EditButton
+                  @click="renameCategory(category2.name, category2.id, 2)"
+                  class="ml-1"
+                ></EditButton>
+                <DeleteButton
+                  class="ml-1"
+                  @click="deleteCategory(2, category2.id, category2.name)"
+                ></DeleteButton>
               </div>
             </div>
 
@@ -248,37 +268,14 @@ const confirmDelete = async () => {
                     ></EditButton>
                     <DeleteButton
                       class="ml-1"
-                      @click="deleteCategory(3, category3.id)"
+                      @click="deleteCategory(3, category3.id, category3.name)"
                     ></DeleteButton>
                   </div>
                 </div>
               </li>
-              <li
-                class="mt-4 mb-2 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
-              >
-                <button class="cursor-pointer p-2" @click="createCategory(3, category2.id)">
-                  + Add new level 3 category
-                </button>
-              </li>
             </ul>
           </li>
         </ul>
-      </li>
-      <li
-        class="mt-4 mb-2 rounded-lg bg-blue-100 text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
-      >
-        <button class="cursor-pointer p-2" @click="createCategory(2, category1.id)">
-          + Add new level 2 category
-        </button>
-      </li>
-    </ul>
-    <ul
-      class="mt-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
-    >
-      <li>
-        <button class="h-full w-full cursor-pointer p-4" @click="createCategory(1, null)">
-          + Add new top level category
-        </button>
       </li>
     </ul>
   </div>
