@@ -13,6 +13,7 @@ import AdminView from '@/views/admin/AdminView.vue'
 import LoginView from '@/views/admin/LoginView.vue'
 import StoreFrontView from '@/views/StoreFrontView.vue'
 import EditCategoriesView from '@/views/admin/EditCategoriesView.vue'
+import EditProductsView from '@/views/admin/EditProductsView.vue'
 import { validateToken } from '@/scripts/auth'
 
 const router = createRouter({
@@ -93,6 +94,11 @@ const router = createRouter({
           path: '/admin/edit-categories',
           name: 'edit-categories',
           component: EditCategoriesView,
+        },
+        {
+          path: '/admin/edit-products',
+          name: 'edit-products',
+          component: EditProductsView,
         },
       ],
     },

@@ -2,7 +2,7 @@
 import { RouterView } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { axios_api } from '@/scripts/global'
-import ProductMenuMain from '@/components/ProductMenuMain.vue'
+import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
 import ProductMenuMobile from '@/components/ProductMenuMobile.vue'
 import MainNavMenu from '@/components/MainNavMenu.vue'
 
