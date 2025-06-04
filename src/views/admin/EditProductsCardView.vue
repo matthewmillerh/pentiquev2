@@ -1,24 +1,8 @@
 <script setup>
-import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
 import { axios_api } from '@/scripts/global.js'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-
-const allCategories = ref([])
-
-onMounted(() => {
-  getAllCategories()
-})
-
-//get all the categories and subcategories
-async function getAllCategories() {
-  try {
-    const response = await axios_api.get('/get-all-categories')
-    allCategories.value = response.data
-  } catch (err) {
-    console.log(err)
-  }
-}
+import ProductCard from '@/components/shared/ProductCard.vue'
 
 const products = ref(null)
 const filteredProducts = ref(null)
@@ -68,22 +52,25 @@ const filterProducts = (product) => {
 }
 </script>
 <template>
-  <div class="mt-28">
-    <div
-      class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 shadow sm:block"
-    >
-      <!-- Product side menu -->
-      <ProductMenuMain></ProductMenuMain>
-    </div>
-  </div>
-
   <!-- Products display -->
-  <div
-    class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100 shadow sm:w-[80%] sm:max-w-[80%]"
-  >
-    <router-view v-slot="{ Component }">
-      <component :is="Component" />
-    </router-view>
+  <h1 class="p-3 text-center text-lg font-semibold">{{ currentCategory }}</h1>
+  <div class="flex flex-wrap justify-center gap-5 p-4">
+    <div v-for="product in filteredProducts" :key="product.productID">
+      <ProductCard
+        :category1-name="product.category1Name"
+        :category2-name="product.category2Name"
+        :category3-name="product.category3Name"
+        :product-name="product.productName"
+        :image-u-r-l="product.productFileName"
+        :product-special="product.productSpecial"
+        :product-special-price="product.productSpecialPrice"
+        :product-price="product.productPrice"
+        :product-availability="product.productStockStatus"
+        :productID="product.productID"
+        :category1ID="product.category1ID"
+        :baseURL="'/admin/edit-products/product/'"
+      ></ProductCard>
+    </div>
   </div>
 </template>
 <style scoped></style>

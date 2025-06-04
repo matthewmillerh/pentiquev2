@@ -4,10 +4,17 @@ import { onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 const allCategories = ref([])
+const isAdmin = ref(false) // This is used to conditionally render admin links
 
 const route = useRoute()
 onMounted(() => {
   getAllCategories()
+
+  if (route.path.startsWith('/admin')) {
+    isAdmin.value = true
+  } else {
+    isAdmin.value = false
+  }
 })
 
 //get all the categories and subcategories
@@ -34,10 +41,19 @@ function currentCategory(category1ID) {
       class="rounded-lg border-white not-last:border-b"
     >
       <!-- Loop through all top level categories -->
+      <!-- RouterLink to the top level category for admin -->
       <RouterLink
-        :to="
-          currentCategory(category1.id) ? '/' : '/products/' + category1.name + '/' + category1.id
-        "
+        v-if="isAdmin"
+        :to="`/admin/edit-products/${category1.name}/${category1.id}`"
+        class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all"
+      >
+        {{ category1.name }}
+      </RouterLink>
+
+      <!-- RouterLink to the top level category for non-admin -->
+      <RouterLink
+        v-else
+        :to="currentCategory(category1.id) ? '/' : `/products/${category1.name}/${category1.id}`"
         class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all"
       >
         {{ category1.name }}
@@ -51,20 +67,44 @@ function currentCategory(category1ID) {
             <!-- Nav list for level 2 categories -->
             <ul v-if="category1.subcategories.length">
               <li v-for="(category2, index) in category1.subcategories" :key="index">
+                <!-- RouterLink for level 2 categories for admin -->
                 <RouterLink
-                  :to="'/products/' + category2.name + '/' + category1.id"
+                  v-if="isAdmin"
+                  :to="`/admin/edit-products/${category2.name}/${category1.id}`"
                   class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all"
-                  >- {{ category2.name }}</RouterLink
                 >
+                  - {{ category2.name }}
+                </RouterLink>
+
+                <!-- RouterLink for level 2 categories for non-admin -->
+                <RouterLink
+                  v-else
+                  :to="`/products/${category2.name}/${category1.id}`"
+                  class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all"
+                >
+                  - {{ category2.name }}
+                </RouterLink>
 
                 <!-- Nav list for level 3 categories -->
                 <ul v-if="category2.subcategories.length">
                   <li v-for="(category3, index) in category2.subcategories" :key="index">
+                    <!-- RouterLink for level 3 categories for admin -->
                     <RouterLink
-                      :to="'/products/' + category3.name + '/' + category1.id"
+                      v-if="isAdmin"
+                      :to="`/admin/edit-products/${category3.name}/${category1.id}`"
                       class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all"
-                      >-- {{ category3.name }}</RouterLink
                     >
+                      -- {{ category3.name }}
+                    </RouterLink>
+
+                    <!-- RouterLink for level 3 categories for non-admin -->
+                    <RouterLink
+                      v-else
+                      :to="`/products/${category3.name}/${category1.id}`"
+                      class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all"
+                    >
+                      -- {{ category3.name }}
+                    </RouterLink>
                   </li>
                 </ul>
               </li>

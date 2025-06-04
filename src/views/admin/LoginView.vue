@@ -55,26 +55,26 @@ onUnmounted(() => {
     <div class="absolute inset-0 m-auto h-1/2 w-1/2 rounded-lg bg-blue-400">
       <div class="flex h-full w-full items-center justify-center">
         <form @submit.prevent="login">
-          <div class="flex flex-col items-center justify-center">
-            <h1 class="text-3xl font-bold text-white">Log In</h1>
+          <div class="flex flex-col items-center justify-center gap-2">
+            <h1 class="text-3xl font-bold text-white text-shadow-md">Log In</h1>
             <p class="text-lg text-white">Please log in to continue</p>
             <input
               type="text"
               placeholder="Username"
-              class="mt-4 rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              class="mt-4 rounded border border-gray-300 px-4 py-2 shadow-md focus:ring-2 focus:ring-blue-600 focus:outline-none"
               v-model="userEmail"
               required
             />
             <input
               type="password"
               placeholder="Password"
-              class="mt-2 rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              class="mt-2 rounded border border-gray-300 px-4 py-2 shadow-md focus:ring-2 focus:ring-blue-600 focus:outline-none"
               v-model="userPassword"
               required
             />
             <div class="mt-4">
               <button
-                class="cursor-pointer rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                class="cursor-pointer rounded bg-blue-600 px-4 py-2 text-white shadow-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:outline-none"
               >
                 Log In
               </button>
