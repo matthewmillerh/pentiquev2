@@ -55,7 +55,11 @@ const filterProducts = (product) => {
   <!-- Products display -->
   <h1 class="p-3 text-center text-lg font-semibold">{{ currentCategory }}</h1>
   <div class="flex flex-wrap justify-center gap-5 p-4">
-    <div v-for="product in filteredProducts" :key="product.productID">
+    <div
+      v-for="product in filteredProducts"
+      :key="product.productID"
+      @click="alert('Product clicked!')"
+    >
       <ProductCard
         :category1-name="product.category1Name"
         :category2-name="product.category2Name"
@@ -66,9 +70,6 @@ const filterProducts = (product) => {
         :product-special-price="product.productSpecialPrice"
         :product-price="product.productPrice"
         :product-availability="product.productStockStatus"
-        :productID="product.productID"
-        :category1ID="product.category1ID"
-        :baseURL="'/admin/edit-products/product/'"
       ></ProductCard>
     </div>
   </div>

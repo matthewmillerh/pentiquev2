@@ -1,71 +1,23 @@
 <script setup>
+import EditProducts from '@/components/admin/EditProducts.vue'
 import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
-import { axios_api } from '@/scripts/global.js'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-const allCategories = ref([])
-
-onMounted(() => {
-  getAllCategories()
-})
-
-//get all the categories and subcategories
-async function getAllCategories() {
-  try {
-    const response = await axios_api.get('/get-all-categories')
-    allCategories.value = response.data
-  } catch (err) {
-    console.log(err)
-  }
-}
-
-const products = ref(null)
-const filteredProducts = ref(null)
-const route = useRoute()
 const currentCategory = ref(null)
+const route = useRoute()
 
 onMounted(() => {
-  setTimeout(() => getProductsByCategory(), 500)
   currentCategory.value = route.params.category
 })
-
-//get all products for the current level 1 category
-async function getProductsByCategory() {
-  try {
-    const response = await axios_api.get('/products-by-category/' + route.params.category1ID)
-    products.value = response.data
-    filteredProducts.value = products.value.filter(filterProducts)
-  } catch (err) {
-    console.log(err)
-  }
-}
-
-//Change which level 1 category products are shown when the route params change categoryID
-watch(
-  () => route.params.category1ID,
-  () => {
-    setTimeout(() => getProductsByCategory(), 500)
-  },
-)
 
 //Change which category products are shown when the route params change
 watch(
   () => route.params.category,
   () => {
     currentCategory.value = route.params.category
-
-    filteredProducts.value = products.value.filter(filterProducts)
   },
 )
-
-const filterProducts = (product) => {
-  return (
-    product.category1Name === currentCategory.value ||
-    product.category2Name === currentCategory.value ||
-    product.category3Name === currentCategory.value
-  )
-}
 </script>
 <template>
   <div class="mt-28">
@@ -81,9 +33,7 @@ const filterProducts = (product) => {
   <div
     class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100 shadow sm:w-[80%] sm:max-w-[80%]"
   >
-    <router-view v-slot="{ Component }">
-      <component :is="Component" />
-    </router-view>
+    <EditProducts v-if="currentCategory"></EditProducts>
   </div>
 </template>
 <style scoped></style>

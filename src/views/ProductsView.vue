@@ -56,20 +56,19 @@ const filterProducts = (product) => {
     <h1 class="p-3 text-center text-lg font-semibold">{{ currentCategory }}</h1>
     <div class="flex flex-wrap justify-center gap-5 p-4">
       <div v-for="product in filteredProducts" :key="product.productID">
-        <ProductCard
-          :category1-name="product.category1Name"
-          :category2-name="product.category2Name"
-          :category3-name="product.category3Name"
-          :product-name="product.productName"
-          :image-u-r-l="product.productFileName"
-          :product-special="product.productSpecial"
-          :product-special-price="product.productSpecialPrice"
-          :product-price="product.productPrice"
-          :product-availability="product.productStockStatus"
-          :productID="product.productID"
-          :category1ID="product.category1ID"
-          :baseURL="'/product/'"
-        ></ProductCard>
+        <RouterLink :to="`/product/${product.productID}/${product.category1ID}`">
+          <ProductCard
+            :category1-name="product.category1Name"
+            :category2-name="product.category2Name"
+            :category3-name="product.category3Name"
+            :product-name="product.productName"
+            :image-u-r-l="product.productFileName"
+            :product-special="product.productSpecial"
+            :product-special-price="product.productSpecialPrice"
+            :product-price="product.productPrice"
+            :product-availability="product.productStockStatus"
+          ></ProductCard>
+        </RouterLink>
       </div>
     </div>
   </div>

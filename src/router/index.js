@@ -14,8 +14,6 @@ import LoginView from '@/views/admin/LoginView.vue'
 import StoreFrontView from '@/views/StoreFrontView.vue'
 import EditCategoriesView from '@/views/admin/EditCategoriesView.vue'
 import EditProductsView from '@/views/admin/EditProductsView.vue'
-import EditProductsCardView from '@/views/admin/EditProductsCardView.vue'
-import EditProductView from '@/views/admin/EditProductView.vue'
 import { validateToken } from '@/scripts/auth'
 
 const router = createRouter({
@@ -98,26 +96,9 @@ const router = createRouter({
           component: EditCategoriesView,
         },
         {
-          path: '/admin/edit-products',
+          path: '/admin/edit-products/:category?/:category1ID?/:category2?/:category3?',
           name: 'edit-products',
           component: EditProductsView,
-          children: [
-            {
-              path: '',
-              name: 'edit-products-default',
-              component: EditProductsCardView,
-            },
-            {
-              path: '/admin/edit-products/:category/:category1ID/:category2?/:category3?',
-              name: 'edit-products-by-category',
-              component: EditProductsCardView,
-            },
-            {
-              path: '/admin/edit-products/product/:productID/:category1ID',
-              name: 'edit-product',
-              component: EditProductView,
-            },
-          ],
         },
       ],
     },
