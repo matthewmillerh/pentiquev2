@@ -27,8 +27,6 @@ onMounted(() => {
       categoryInput.value.focus()
     }
   })
-
-  console.log('EditProductModal mounted with product details:', productDetailsCopy.value)
 })
 
 // Triggers the create function in the parent component and then closes the modal
@@ -170,6 +168,7 @@ input[type='number']::-webkit-inner-spin-button {
 
 /* For Firefox */
 input[type='number'] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 </style>
