@@ -57,17 +57,7 @@ const filterProducts = (product) => {
     <div class="flex flex-wrap justify-center gap-5 p-4">
       <div v-for="product in filteredProducts" :key="product.productID">
         <RouterLink :to="`/product/${product.productID}/${product.category1ID}`">
-          <ProductCard
-            :category1-name="product.category1Name"
-            :category2-name="product.category2Name"
-            :category3-name="product.category3Name"
-            :product-name="product.productName"
-            :image-u-r-l="product.productFileName"
-            :product-special="product.productSpecial"
-            :product-special-price="product.productSpecialPrice"
-            :product-price="product.productPrice"
-            :product-availability="product.productStockStatus"
-          ></ProductCard>
+          <ProductCard :productDetails="product"></ProductCard>
         </RouterLink>
       </div>
     </div>

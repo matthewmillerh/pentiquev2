@@ -4,6 +4,7 @@ import ModalWrapper from '../shared/ModalWrapper.vue'
 import CancelButton from '../shared/buttons/CancelButton.vue'
 import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 import { formatter } from '@/scripts/global'
+import { getProductImageUrl } from '@/utils/imageUtils.js'
 
 const categoryName = ref('')
 const categoryInput = ref(null)
@@ -57,11 +58,45 @@ const unMount = () => {
 <template>
   <ModalWrapper :title="title" @close="unMount" ref="modalWrapper">
     <img
-      :src="`/images/${productDetailsCopy.category1Name}/${productDetailsCopy.category2Name ? productDetailsCopy.category2Name + '/' : ''}${productDetailsCopy.category3Name ? category3Name + '/' : ''}${productDetailsCopy.productFileName}`"
-      class="max-h-60 max-w-full self-center rounded-md p-2 shadow-md shadow-black/20"
+      :src="getProductImageUrl(productDetailsCopy, 0, { showPlaceholder: true })"
+      @error="$event.target.src = '/images/no-image.png'"
+      class="max-h-60 max-w-full self-center rounded-md border border-blue-300 p-2 shadow-md shadow-black/20"
       alt=""
     />
-    <p class="min-w-[350px] text-start text-sm font-semibold">Product Description:</p>
+    <div class="grid max-h-48 w-full grid-cols-3 grid-rows-1 gap-2 rounded-lg">
+      <div
+        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
+      >
+        <img
+          :src="getProductImageUrl(productDetailsCopy, 1, { showPlaceholder: true })"
+          @error="$event.target.src = '/images/no-image.png'"
+          class="h-full max-w-full cursor-pointer self-center"
+          alt="Product Image"
+        />
+      </div>
+      <div
+        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
+      >
+        <img
+          :src="getProductImageUrl(productDetailsCopy, 2, { showPlaceholder: true })"
+          @error="$event.target.src = '/images/no-image.png'"
+          class="h-full max-w-full cursor-pointer self-center"
+          alt="Product Image"
+        />
+      </div>
+      <div
+        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
+      >
+        <img
+          :src="getProductImageUrl(productDetailsCopy, 3, { showPlaceholder: true })"
+          @error="$event.target.src = '/images/no-image.png'"
+          class="h-full max-w-full cursor-pointer self-center"
+          alt="Product Image"
+        />
+      </div>
+    </div>
+
+    <p class="w-full min-w-[350px] text-start text-sm font-semibold">Product Description:</p>
     <textarea
       v-model="productDetailsCopy.productDescription"
       class="max-h-72 w-full rounded-md bg-neutral-100 p-1 text-sm shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -119,7 +154,7 @@ const unMount = () => {
       </option>
     </select>
 
-    <div class="flex gap-2">
+    <div class="mt-2 flex gap-2">
       <CancelButton @close="closeWrapper()"></CancelButton>
       <ConfirmButton @confirm="confirm()"></ConfirmButton>
     </div>

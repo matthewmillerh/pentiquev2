@@ -88,6 +88,7 @@ const resetModal = () => {
         :product-special-price="product.productSpecialPrice"
         :product-price="product.productPrice"
         :product-availability="product.productStockStatus"
+        :productDetails="product"
       ></ProductCard>
     </div>
   </div>
