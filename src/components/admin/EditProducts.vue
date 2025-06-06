@@ -3,11 +3,16 @@ import { axios_api } from '@/scripts/global.js'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from '@/components/shared/ProductCard.vue'
+import EditProductModal from '@/components/admin/EditProductModal.vue'
 
 const products = ref(null)
 const filteredProducts = ref(null)
 const route = useRoute()
 const currentCategory = ref(null)
+const showEditModal = ref(false)
+
+// The current product to be edited in the modal
+const productToEdit = ref(null)
 
 onMounted(() => {
   setTimeout(() => getProductsByCategory(), 500)
@@ -50,6 +55,18 @@ const filterProducts = (product) => {
     product.category3Name === currentCategory.value
   )
 }
+
+// Show the edit product modal with the selected product
+const showEditProductModal = (product) => {
+  productToEdit.value = product
+  showEditModal.value = true
+}
+
+// Reset the modal state after closing it
+const resetModal = () => {
+  productToEdit.value = null
+  showEditModal.value = false
+}
 </script>
 <template>
   <!-- Products display -->
@@ -58,7 +75,8 @@ const filterProducts = (product) => {
     <div
       v-for="product in filteredProducts"
       :key="product.productID"
-      @click="alert('Product clicked!')"
+      @click="showEditProductModal(product)"
+      class="cursor-pointer"
     >
       <ProductCard
         :category1-name="product.category1Name"
@@ -73,5 +91,13 @@ const filterProducts = (product) => {
       ></ProductCard>
     </div>
   </div>
+
+  <!-- EditProductModal -->
+  <EditProductModal
+    v-if="showEditModal"
+    :title="productToEdit.productName"
+    :product-details="productToEdit"
+    @close="resetModal()"
+  ></EditProductModal>
 </template>
 <style scoped></style>

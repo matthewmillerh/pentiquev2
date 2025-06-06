@@ -31,14 +31,14 @@ defineProps([
         <span class="text-sm font-semibold">{{ formatter.format(productSpecialPrice) }}</span>
       </div>
       <img
-        :src="`/images/${category1Name}/${category2Name + '/' || ''}${category3Name + '/' || ''}${imageURL}`"
+        :src="`/images/${category1Name ? category1Name + '/' : ''}${category2Name ? category2Name + '/' : ''}${category3Name ? category3Name + '/' : ''}${imageURL}`"
         class="max-h-full max-w-full self-center"
-        alt=""
+        :alt="`${productName}`"
       />
     </div>
     <div class="text-center">
       <div>
-        <span class="text-sm">Price:</span>
+        <span class="mr-0.5 text-sm">Price:</span>
         <span class="text-sm font-semibold" :class="productSpecialPrice > 0 ? 'line-through' : ''">
           {{ formatter.format(productPrice) }}
         </span>

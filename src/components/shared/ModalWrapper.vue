@@ -27,14 +27,15 @@ defineExpose({
     <div
       v-if="show"
       class="fixed top-0 right-0 bottom-0 left-0 z-20 bg-black/10 backdrop-blur-md"
-      @click="show = false"
+      @mousedown="show = false"
     >
       <div
-        class="modal absolute top-52 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 text-lg font-semibold shadow-md"
+        class="modal absolute top-52 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md"
         @click.stop
+        @mousedown.stop
       >
-        <div>{{ title }}</div>
-        <div class="font-normal">{{ message }}</div>
+        <div class="text-lg font-semibold">{{ title }}</div>
+        <div class="font-normal" v-if="message">{{ message }}</div>
         <slot></slot>
       </div>
     </div>
