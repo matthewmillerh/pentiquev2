@@ -10,6 +10,7 @@ const filteredProducts = ref(null)
 const route = useRoute()
 const currentCategory = ref(null)
 const showEditModal = ref(false)
+const isUpdating = ref(false)
 
 // The current product to be edited in the modal
 const productToEdit = ref(null)
@@ -66,6 +67,98 @@ const showEditProductModal = (product) => {
 const resetModal = () => {
   productToEdit.value = null
   showEditModal.value = false
+  isUpdating.value = false
+}
+
+// Update the product details after editing
+const updateProduct = async (updatedProduct, imageFiles) => {
+  isUpdating.value = true
+
+  const formData = new FormData()
+  formData.append('productDetails', JSON.stringify(updatedProduct))
+
+  for (let index = 0; index < 4; index++) {
+    formData.append(`image_${index}`, imageFiles[index] || null)
+  }
+
+  try {
+    // Update the product in the database
+    const response = await axios_api.put('/products/edit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    // Use the updated product data from the backend response
+    const updatedProductFromDB = response.data
+
+    // Wait for uploaded images to be available on the server
+    const imageCheckPromises = []
+    for (let index = 0; index < 4; index++) {
+      if (imageFiles[index] && updatedProductFromDB[`productImage${index}`]) {
+        // Construct the image URL
+        const imageUrl =
+          `/images/${updatedProductFromDB.category1Name}/` +
+          (updatedProductFromDB.category2Name ? updatedProductFromDB.category2Name + '/' : '') +
+          (updatedProductFromDB.category3Name ? updatedProductFromDB.category3Name + '/' : '') +
+          updatedProductFromDB[`productImage${index}`]
+
+        // Check if the image is accessible
+        imageCheckPromises.push(waitForImage(imageUrl))
+      }
+    }
+
+    // Wait for all images to be accessible
+    if (imageCheckPromises.length > 0) {
+      await Promise.all(imageCheckPromises)
+    }
+
+    // Add cache busting timestamp to force image refresh
+    const timestamp = Date.now()
+    updatedProductFromDB.cacheKey = timestamp
+
+    // Now update the UI
+    const index = products.value.findIndex((p) => p.productID === updatedProduct.productID)
+    if (index !== -1) {
+      products.value[index] = updatedProductFromDB
+      filteredProducts.value = products.value.filter(filterProducts)
+    }
+    console.log('Product updated successfully')
+    resetModal()
+  } catch (error) {
+    console.error('Error updating product:', error)
+    isUpdating.value = false
+  }
+}
+
+// Helper function to wait for an image to be accessible
+const waitForImage = (imageUrl, maxRetries = 10, delay = 500) => {
+  return new Promise((resolve) => {
+    let retries = 0
+
+    const checkImage = () => {
+      const img = new Image()
+
+      img.onload = () => {
+        resolve(true)
+      }
+
+      img.onerror = () => {
+        retries++
+        if (retries < maxRetries) {
+          setTimeout(checkImage, delay)
+        } else {
+          console.warn(`Image not accessible after ${maxRetries} attempts: ${imageUrl}`)
+          resolve(false) // Resolve with false instead of rejecting to not break the flow
+        }
+      }
+
+      // Add timestamp to prevent caching issues
+      img.src = imageUrl + `?t=${Date.now()}`
+    }
+
+    checkImage()
+  })
 }
 </script>
 <template>
@@ -74,31 +167,21 @@ const resetModal = () => {
   <div class="flex flex-wrap justify-center gap-5 p-4">
     <div
       v-for="product in filteredProducts"
-      :key="product.productID"
+      :key="`${product.productID}-${product.cacheKey || 0}`"
       @click="showEditProductModal(product)"
       class="cursor-pointer"
     >
-      <ProductCard
-        :category1-name="product.category1Name"
-        :category2-name="product.category2Name"
-        :category3-name="product.category3Name"
-        :product-name="product.productName"
-        :image-u-r-l="product.productFileName"
-        :product-special="product.productSpecial"
-        :product-special-price="product.productSpecialPrice"
-        :product-price="product.productPrice"
-        :product-availability="product.productStockStatus"
-        :productDetails="product"
-      ></ProductCard>
+      <ProductCard :productDetails="product"></ProductCard>
     </div>
   </div>
 
   <!-- EditProductModal -->
   <EditProductModal
     v-if="showEditModal"
-    :title="productToEdit.productName"
     :product-details="productToEdit"
-    @close="resetModal()"
+    :is-updating="isUpdating"
+    @close="resetModal"
+    @update="updateProduct"
   ></EditProductModal>
 </template>
 <style scoped></style>

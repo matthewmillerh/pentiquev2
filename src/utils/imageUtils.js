@@ -10,13 +10,18 @@ export const getProductImageUrl = (
     (productDetails.category3Name ? productDetails.category3Name + '/' : '')
 
   // Map imageIndex to property name
-  const fileNames = ['productFileName', 'productFile2Name', 'productFile3Name', 'productFile4Name']
+  const fileNames = ['productImage0', 'productImage1', 'productImage2', 'productImage3']
   const fileNameKey = fileNames[imageIndex]
   const fileName = fileNameKey ? productDetails[fileNameKey] : null
 
   // For other images, control placeholder with options
   if (fileName) {
-    return baseURL + fileName
+    let imageUrl = baseURL + fileName
+    // Add cache busting if cacheKey exists (for recently updated products)
+    if (productDetails.cacheKey) {
+      imageUrl += `?v=${productDetails.cacheKey}`
+    }
+    return imageUrl
   } else {
     return options.showPlaceholder ? '/images/no-image.png' : null
   }

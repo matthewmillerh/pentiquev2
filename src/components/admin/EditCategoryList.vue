@@ -61,6 +61,7 @@ const resetModals = () => {
   showRenameModal.value = false
   showCreateModal.value = false
   showDeleteModal.value = false
+  console.log('Modals reset successfully.')
 }
 
 // Save the new category name to the database
@@ -104,22 +105,18 @@ const confirmUpdate = async (newCategoryName) => {
       // Reset the modal and display error messages
       if (categoryFoundAndUpdated) {
         console.log('Category name updated in UI successfully!')
-        resetModals()
       } else {
         console.warn(
           'Category not found in local data after successful API update. This might indicate a data mismatch or an issue in your search logic.',
         )
-        resetModals()
       }
     } else {
       console.warn('API call successful, but unexpected status:', response.status)
       alert('Category update failed or no change needed.')
-      resetModals()
     }
   } catch (err) {
     console.error('Error updating category name:', err)
     alert('Failed to update category name. Please try again. Check console for details.')
-    resetModals()
   }
 }
 
@@ -159,17 +156,13 @@ const confirmCreate = async (newCategoryName) => {
           }
         }
       }
-
-      resetModals()
     } else {
       console.warn('API call successful, but unexpected status:', response.status)
       alert('Failed to create category. Please try again.')
-      resetModals()
     }
   } catch (err) {
     console.error('Error creating category:', err)
     alert('Failed to create category. Please try again. Check console for details.')
-    resetModals()
   }
 }
 
@@ -188,16 +181,13 @@ const confirmDelete = async () => {
       // Remove the category from the allCategories array
       allCategories.value = allCategories.value.filter((cat) => cat.id !== currentCategoryID.value)
       console.log('Category deleted successfully!')
-      resetModals()
     } else {
       console.warn('API call successful, but unexpected status:', response.status)
       alert('Failed to delete category. Please try again.')
-      resetModals()
     }
   } catch (err) {
     console.error('Error deleting category:', err)
     alert('Failed to delete category. Please try again. Check console for details.')
-    resetModals()
   }
 }
 </script>

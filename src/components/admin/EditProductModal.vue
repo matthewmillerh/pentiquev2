@@ -1,21 +1,28 @@
 <script setup>
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, onBeforeUnmount } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
 import CancelButton from '../shared/buttons/CancelButton.vue'
 import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 import { formatter } from '@/scripts/global'
 import { getProductImageUrl } from '@/utils/imageUtils.js'
+import EditProductImage from '@/components/admin/images/EditProductImage.vue'
 
-const categoryName = ref('')
 const categoryInput = ref(null)
-const showError = ref(false) // used to show an error message when the input field is empty
 const modalWrapper = ref(null)
+
+// Arrays to hold new image files and URLs for previews
+const newImageFiles = ref([null, null, null, null])
+const newImageUrls = ref([null, null, null, null])
+const imageKeys = ref([Date.now(), Date.now() + 1, Date.now() + 2, Date.now() + 3]) // For forcing re-renders
 
 const emit = defineEmits(['update', 'close'])
 
 const props = defineProps({
-  title: String,
   productDetails: Object,
+  isUpdating: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const productDetailsCopy = ref({ ...props.productDetails }) // This will hold the product details passed from the parent component
@@ -29,14 +36,17 @@ onMounted(() => {
   })
 })
 
+// Returns the correct image for each slot
+const displayedImage = (idx) => {
+  if (newImageUrls.value[idx]) return newImageUrls.value[idx]
+  return getProductImageUrl(productDetailsCopy.value, idx, { showPlaceholder: true })
+}
+
 // Triggers the create function in the parent component and then closes the modal
 const confirm = () => {
-  if (!categoryName.value.trim()) {
-    showError.value = true
-  } else {
-    emit('update', categoryName.value)
-    closeWrapper()
-  }
+  if (props.isUpdating) return // Prevent multiple submissions
+  emit('update', productDetailsCopy.value, newImageFiles.value)
+  // Don't close the wrapper immediately - let the parent handle it after successful update
 }
 
 // Trigger the exit transition in the modal wrapper component
@@ -52,45 +62,102 @@ const closeWrapper = () => {
 const unMount = () => {
   emit('close')
 }
+
+function onImageChange(event, idx) {
+  const file = event.target.files[0]
+  if (file) {
+    newImageFiles.value[idx] = file
+    if (newImageUrls.value[idx]) {
+      URL.revokeObjectURL(newImageUrls.value[idx])
+    }
+    newImageUrls.value[idx] = URL.createObjectURL(file)
+    productDetailsCopy.value[`productImage${idx}`] = appendSuffix(
+      `${productDetailsCopy.value.productID}/${file.name}`,
+      `_${idx}`,
+    )
+    // Update image key to force re-render
+    imageKeys.value[idx] = Date.now()
+  }
+}
+
+// Helper function to append _0, _1, _2, _3 before file extension
+function appendSuffix(filename, suffix) {
+  if (!filename) return filename
+  const dotIndex = filename.lastIndexOf('.')
+  if (dotIndex === -1) return filename + suffix
+  return filename.slice(0, dotIndex) + suffix + filename.slice(dotIndex)
+}
+
+function onImgError(event) {
+  event.target.src = '/images/no-image.png'
+}
+
+onBeforeUnmount(() => {
+  newImageUrls.value.forEach((url) => {
+    if (url) URL.revokeObjectURL(url)
+  })
+})
 </script>
 <template>
-  <ModalWrapper :title="title" @close="unMount" ref="modalWrapper">
-    <img
-      :src="getProductImageUrl(productDetailsCopy, 0, { showPlaceholder: true })"
-      @error="$event.target.src = '/images/no-image.png'"
-      class="max-h-60 max-w-full self-center rounded-md border border-blue-300 p-2 shadow-md shadow-black/20"
-      alt=""
+  <ModalWrapper @close="unMount" ref="modalWrapper">
+    <!-- Loading overlay -->
+    <div
+      v-if="isUpdating"
+      class="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-black/50"
+    >
+      <div class="rounded-lg bg-white p-6 text-center shadow-lg">
+        <div
+          class="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"
+        ></div>
+        <p class="text-sm font-semibold">Updating product...</p>
+        <p class="text-xs text-gray-600">Please wait while we save your changes</p>
+      </div>
+    </div>
+
+    <input
+      type="text"
+      class="w-full rounded-lg px-1 text-center font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-none"
+      v-model="productDetailsCopy.productName"
     />
+    <input
+      type="text"
+      class="w-full rounded-lg px-1 text-center font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-none"
+      v-model="productDetailsCopy.productCode"
+    />
+    <EditProductImage
+      :key="imageKeys[0]"
+      :image-url="displayedImage(0)"
+      :image-index="0"
+      @change="onImageChange"
+      @error="onImgError"
+    ></EditProductImage>
     <div class="grid max-h-48 w-full grid-cols-3 grid-rows-1 gap-2 rounded-lg">
-      <div
-        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
-      >
-        <img
-          :src="getProductImageUrl(productDetailsCopy, 1, { showPlaceholder: true })"
-          @error="$event.target.src = '/images/no-image.png'"
-          class="h-full max-w-full cursor-pointer self-center"
-          alt="Product Image"
-        />
+      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+        <EditProductImage
+          :key="imageKeys[1]"
+          :image-url="displayedImage(1)"
+          :image-index="1"
+          @change="onImageChange"
+          @error="onImgError"
+        ></EditProductImage>
       </div>
-      <div
-        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
-      >
-        <img
-          :src="getProductImageUrl(productDetailsCopy, 2, { showPlaceholder: true })"
-          @error="$event.target.src = '/images/no-image.png'"
-          class="h-full max-w-full cursor-pointer self-center"
-          alt="Product Image"
-        />
+      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+        <EditProductImage
+          :key="imageKeys[2]"
+          :image-url="displayedImage(2)"
+          :image-index="2"
+          @change="onImageChange"
+          @error="onImgError"
+        ></EditProductImage>
       </div>
-      <div
-        class="flex h-44 justify-center rounded-lg border border-blue-300 p-2 shadow-md shadow-black/20"
-      >
-        <img
-          :src="getProductImageUrl(productDetailsCopy, 3, { showPlaceholder: true })"
-          @error="$event.target.src = '/images/no-image.png'"
-          class="h-full max-w-full cursor-pointer self-center"
-          alt="Product Image"
-        />
+      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+        <EditProductImage
+          :key="imageKeys[3]"
+          :image-url="displayedImage(3)"
+          :image-index="3"
+          @change="onImageChange"
+          @error="onImgError"
+        ></EditProductImage>
       </div>
     </div>
 
@@ -153,8 +220,11 @@ const unMount = () => {
     </select>
 
     <div class="mt-2 flex gap-2">
-      <CancelButton @close="closeWrapper()"></CancelButton>
-      <ConfirmButton @confirm="confirm()"></ConfirmButton>
+      <CancelButton @close="closeWrapper()" :disabled="isUpdating"></CancelButton>
+      <ConfirmButton @confirm="confirm()" :disabled="isUpdating">
+        <span v-if="isUpdating">Updating...</span>
+        <span v-else>Update Product</span>
+      </ConfirmButton>
     </div>
   </ModalWrapper>
 </template>

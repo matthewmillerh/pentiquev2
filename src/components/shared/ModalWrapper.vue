@@ -30,11 +30,11 @@ defineExpose({
       @mousedown="show = false"
     >
       <div
-        class="modal absolute top-52 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md"
+        class="modal absolute top-28 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
         @click.stop
         @mousedown.stop
       >
-        <div class="text-lg font-semibold">{{ title }}</div>
+        <div class="text-lg font-semibold" v-if="title">{{ title }}</div>
         <div class="font-normal" v-if="message">{{ message }}</div>
         <slot></slot>
       </div>
