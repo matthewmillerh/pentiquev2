@@ -6,6 +6,7 @@ import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 import { formatter } from '@/scripts/global'
 import { getProductImageUrl } from '@/utils/imageUtils.js'
 import EditProductImage from '@/components/admin/images/EditProductImage.vue'
+import DeleteButton from '../shared/buttons/DeleteButton.vue'
 
 const categoryInput = ref(null)
 const modalWrapper = ref(null)
@@ -15,7 +16,7 @@ const newImageFiles = ref([null, null, null, null])
 const newImageUrls = ref([null, null, null, null])
 const imageKeys = ref([Date.now(), Date.now() + 1, Date.now() + 2, Date.now() + 3]) // For forcing re-renders
 
-const emit = defineEmits(['update', 'close'])
+const emit = defineEmits(['update', 'close', 'delete'])
 
 const props = defineProps({
   productDetails: Object,
@@ -47,6 +48,25 @@ const confirm = () => {
   if (props.isUpdating) return // Prevent multiple submissions
   emit('update', productDetailsCopy.value, newImageFiles.value)
   // Don't close the wrapper immediately - let the parent handle it after successful update
+}
+
+// Deletes the product by emitting the delete event
+const deleteProduct = () => {
+  if (props.isUpdating) return // Prevent multiple submissions
+
+  // Show confirmation dialog
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete "${productDetailsCopy.value.productName}"?\n\n` +
+      `This action cannot be undone and will permanently remove:\n` +
+      `• Product: ${productDetailsCopy.value.productName}\n` +
+      `• Code: ${productDetailsCopy.value.productCode}\n` +
+      `• All associated images\n\n` +
+      `Click OK to delete or Cancel to keep the product.`,
+  )
+
+  if (confirmDelete) {
+    emit('delete', productDetailsCopy.value)
+  }
 }
 
 // Trigger the exit transition in the modal wrapper component
@@ -220,6 +240,7 @@ onBeforeUnmount(() => {
     </select>
 
     <div class="mt-2 flex gap-2">
+      <DeleteButton text="Delete Product" @delete="deleteProduct"></DeleteButton>
       <CancelButton @close="closeWrapper()" :disabled="isUpdating"></CancelButton>
       <ConfirmButton @confirm="confirm()" :disabled="isUpdating">
         <span v-if="isUpdating">Updating...</span>

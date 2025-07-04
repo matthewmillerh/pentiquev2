@@ -160,6 +160,21 @@ const waitForImage = (imageUrl, maxRetries = 10, delay = 500) => {
     checkImage()
   })
 }
+
+// Delete product function
+const deleteProduct = async (productDetails) => {
+  try {
+    await axios_api.delete('/products/delete', { data: { product: productDetails } })
+    products.value = products.value.filter(
+      (product) => product.productID !== productDetails.productID,
+    )
+    filteredProducts.value = products.value.filter(filterProducts)
+    console.log('Product deleted successfully')
+    resetModal() // Close the modal after successful deletion
+  } catch (error) {
+    console.error('Error deleting product:', error)
+  }
+}
 </script>
 <template>
   <!-- Products display -->
@@ -182,6 +197,7 @@ const waitForImage = (imageUrl, maxRetries = 10, delay = 500) => {
     :is-updating="isUpdating"
     @close="resetModal"
     @update="updateProduct"
+    @delete="deleteProduct"
   ></EditProductModal>
 </template>
 <style scoped></style>
