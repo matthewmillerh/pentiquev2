@@ -4,11 +4,6 @@ export const getProductImageUrl = (
   imageIndex,
   options = { showPlaceholder: false },
 ) => {
-  const baseURL =
-    `/images/${productDetails.category1Name}/` +
-    (productDetails.category2Name ? productDetails.category2Name + '/' : '') +
-    (productDetails.category3Name ? productDetails.category3Name + '/' : '')
-
   // Map imageIndex to property name
   const fileNames = ['productImage0', 'productImage1', 'productImage2', 'productImage3']
   const fileNameKey = fileNames[imageIndex]
@@ -16,7 +11,8 @@ export const getProductImageUrl = (
 
   // For other images, control placeholder with options
   if (fileName) {
-    let imageUrl = baseURL + fileName
+    // Use API endpoint for images
+    let imageUrl = `/api/images/product/${productDetails.productID}/${imageIndex}`
     // Add cache busting if cacheKey exists (for recently updated products)
     if (productDetails.cacheKey) {
       imageUrl += `?v=${productDetails.cacheKey}`

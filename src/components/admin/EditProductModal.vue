@@ -40,7 +40,8 @@ onMounted(() => {
 // Returns the correct image for each slot
 const displayedImage = (idx) => {
   if (newImageUrls.value[idx]) return newImageUrls.value[idx]
-  return getProductImageUrl(productDetailsCopy.value, idx, { showPlaceholder: true })
+  //return getProductImageUrl(productDetailsCopy.value, idx, { showPlaceholder: true })
+  return productDetailsCopy.value.imageUrls?.[idx] || '/images/no-image.png'
 }
 
 // Triggers the create function in the parent component and then closes the modal

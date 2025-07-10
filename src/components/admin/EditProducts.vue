@@ -92,32 +92,11 @@ const updateProduct = async (updatedProduct, imageFiles) => {
     // Use the updated product data from the backend response
     const updatedProductFromDB = response.data
 
-    // Wait for uploaded images to be available on the server
-    const imageCheckPromises = []
-    for (let index = 0; index < 4; index++) {
-      if (imageFiles[index] && updatedProductFromDB[`productImage${index}`]) {
-        // Construct the image URL
-        const imageUrl =
-          `/images/${updatedProductFromDB.category1Name}/` +
-          (updatedProductFromDB.category2Name ? updatedProductFromDB.category2Name + '/' : '') +
-          (updatedProductFromDB.category3Name ? updatedProductFromDB.category3Name + '/' : '') +
-          updatedProductFromDB[`productImage${index}`]
-
-        // Check if the image is accessible
-        imageCheckPromises.push(waitForImage(imageUrl))
-      }
-    }
-
-    // Wait for all images to be accessible
-    if (imageCheckPromises.length > 0) {
-      await Promise.all(imageCheckPromises)
-    }
-
     // Add cache busting timestamp to force image refresh
     const timestamp = Date.now()
     updatedProductFromDB.cacheKey = timestamp
 
-    // Now update the UI
+    // Update the UI immediately since images are served via API
     const index = products.value.findIndex((p) => p.productID === updatedProduct.productID)
     if (index !== -1) {
       products.value[index] = updatedProductFromDB
@@ -129,36 +108,6 @@ const updateProduct = async (updatedProduct, imageFiles) => {
     console.error('Error updating product:', error)
     isUpdating.value = false
   }
-}
-
-// Helper function to wait for an image to be accessible
-const waitForImage = (imageUrl, maxRetries = 10, delay = 500) => {
-  return new Promise((resolve) => {
-    let retries = 0
-
-    const checkImage = () => {
-      const img = new Image()
-
-      img.onload = () => {
-        resolve(true)
-      }
-
-      img.onerror = () => {
-        retries++
-        if (retries < maxRetries) {
-          setTimeout(checkImage, delay)
-        } else {
-          console.warn(`Image not accessible after ${maxRetries} attempts: ${imageUrl}`)
-          resolve(false) // Resolve with false instead of rejecting to not break the flow
-        }
-      }
-
-      // Add timestamp to prevent caching issues
-      img.src = imageUrl + `?t=${Date.now()}`
-    }
-
-    checkImage()
-  })
 }
 
 // Delete product function

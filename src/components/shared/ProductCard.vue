@@ -1,14 +1,14 @@
 <script setup>
 import { formatter } from '@/scripts/global'
-import { getProductImageUrl } from '@/utils/imageUtils.js'
+import { useProductImages } from '@/composables/useProductImages'
 import { computed } from 'vue'
 
 const props = defineProps(['productDetails'])
 
-// Computed property to ensure image URL is reactive to product changes
-const productImageUrl = computed(() => {
-  return getProductImageUrl(props.productDetails, 0, { showPlaceholder: true })
-})
+// Convert props to ref for the composable
+const productRef = computed(() => props.productDetails)
+
+const { primaryImage, handleImageError } = useProductImages(productRef)
 </script>
 
 <template>
@@ -30,8 +30,8 @@ const productImageUrl = computed(() => {
         </span>
       </div>
       <img
-        :src="productImageUrl"
-        @error="$event.target.src = '/images/no-image.png'"
+        :src="primaryImage"
+        @error="handleImageError"
         class="max-h-full max-w-full self-center"
         :alt="`${productDetails.productName}`"
         :key="`${productDetails.productID}-${productDetails.cacheKey || 0}`"

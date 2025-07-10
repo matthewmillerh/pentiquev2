@@ -37,6 +37,7 @@ async function getProductByID() {
   try {
     const response = await axios_api.get('/products/' + route.params.productID)
     product.value = response.data
+    console.log(product.value.imageUrls[0])
   } catch (err) {
     console.log(err)
   }
@@ -131,7 +132,7 @@ function showCartPopup(value) {
           </span>
         </div>
         <img
-          :src="getProductImageUrl(product, 0, { showPlaceholder: true })"
+          :src="product.imageUrls?.[0]"
           @error="$event.target.src = '/images/no-image.png'"
           class="max-h-full max-w-full cursor-pointer self-center"
           alt="Product Image"
