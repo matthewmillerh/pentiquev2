@@ -7,12 +7,12 @@ onMounted(() => {
   setTimeout(() => getCategories(), 500)
 })
 
-const items = ref(null)
+const categories = ref([])
 
 async function getCategories() {
   try {
     const response = await axios_api.get('/category1')
-    items.value = response.data
+    categories.value = response.data
   } catch (err) {
     console.log(err)
   }
@@ -22,14 +22,11 @@ async function getCategories() {
 <template>
   <div class="mr-auto ml-auto">
     <div class="flex flex-wrap justify-center-safe gap-4 p-4">
-      <div v-for="item in items" :key="item.category1ID">
-        <RouterLink :to="'/products/' + item.category1Name + '/' + item.category1ID">
-          <ProductCategoryCard
-            :category1Name="item.category1Name"
-            :category2Name="item.category2Name"
-            :category3Name="item.category3Name"
-            :imageURL="item.productFileName"
-          ></ProductCategoryCard>
+      <div v-for="categoryDetail in categories" :key="categoryDetail.category1ID">
+        <RouterLink
+          :to="'/products/' + categoryDetail.category1Name + '/' + categoryDetail.category1ID"
+        >
+          <ProductCategoryCard :categoryDetails="categoryDetail"></ProductCategoryCard>
         </RouterLink>
       </div>
     </div>

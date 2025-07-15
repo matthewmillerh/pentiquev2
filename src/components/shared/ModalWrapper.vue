@@ -30,7 +30,7 @@ defineExpose({
       @mousedown="show = false"
     >
       <div
-        class="modal absolute top-28 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
+        class="modal absolute top-16 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
         @click.stop
         @mousedown.stop
       >

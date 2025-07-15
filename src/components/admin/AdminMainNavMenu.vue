@@ -18,7 +18,7 @@
         <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/admin/edit-products">
           Edit Products
         </RouterLink>
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/shipping">
+        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/admin/add-product">
           Add a Product
         </RouterLink>
       </nav>

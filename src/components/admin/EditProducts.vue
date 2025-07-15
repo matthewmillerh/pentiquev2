@@ -82,7 +82,7 @@ const updateProduct = async (updatedProduct, imageFiles) => {
   }
 
   try {
-    // Update the product in the database
+    // Update the product in the database and wait for completion
     const response = await axios_api.put('/products/edit', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -92,16 +92,16 @@ const updateProduct = async (updatedProduct, imageFiles) => {
     // Use the updated product data from the backend response
     const updatedProductFromDB = response.data
 
-    // Add cache busting timestamp to force image refresh
-    const timestamp = Date.now()
-    updatedProductFromDB.cacheKey = timestamp
+    // Wait a moment to ensure the image files are fully written to disk
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Update the UI immediately since images are served via API
+    // Update the UI with the new product data
     const index = products.value.findIndex((p) => p.productID === updatedProduct.productID)
     if (index !== -1) {
       products.value[index] = updatedProductFromDB
       filteredProducts.value = products.value.filter(filterProducts)
     }
+
     console.log('Product updated successfully')
     resetModal()
   } catch (error) {

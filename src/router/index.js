@@ -100,6 +100,11 @@ const router = createRouter({
           name: 'edit-products',
           component: EditProductsView,
         },
+        {
+          path: '/admin/add-product',
+          name: 'add-product',
+          component: () => import('@/views/admin/AddProductView.vue'),
+        },
       ],
     },
     {

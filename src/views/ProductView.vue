@@ -4,11 +4,15 @@ import { axios_api } from '@/scripts/global.js'
 import { useRoute } from 'vue-router'
 import NotificationPopup from '@/components/NotificationPopup.vue'
 import { formatter, saveCart } from '@/scripts/global.js'
-import { getProductImageUrl } from '@/utils/imageUtils'
+import { useProductImages } from '@/composables/useProductImages'
 
 const product = ref({})
 const route = useRoute()
 const addedToCart = ref(0)
+
+// Get image URLs and handle image errors using the composable
+const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
+  useProductImages(product)
 
 onMounted(() => {
   getProductByID()
@@ -37,7 +41,6 @@ async function getProductByID() {
   try {
     const response = await axios_api.get('/products/' + route.params.productID)
     product.value = response.data
-    console.log(product.value.imageUrls[0])
   } catch (err) {
     console.log(err)
   }
@@ -82,37 +85,37 @@ function showCartPopup(value) {
     >
       <div
         class="mb-4 grid h-[350px] max-w-28 grid-cols-1 grid-rows-3 rounded-lg"
-        v-if="product.productFile2Name || product.productFile3Name || product.productFile4Name"
+        v-if="secondaryImage || tertiaryImage || quaternaryImage"
       >
         <div
           class="mb-1 flex justify-center rounded-lg border border-blue-300 p-2"
-          v-if="product.productFile2Name"
+          v-if="secondaryImage"
         >
           <img
-            :src="getProductImageUrl(product, 1, { showPlaceholder: false })"
-            @error="$event.target.src = '/images/no-image.png'"
+            :src="secondaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
         </div>
         <div
           class="mt-1 mb-1 flex justify-center rounded-lg border border-blue-300 p-2"
-          v-if="product.productFile3Name"
+          v-if="tertiaryImage"
         >
           <img
-            :src="getProductImageUrl(product, 2, { showPlaceholder: false })"
-            @error="$event.target.src = '/images/no-image.png'"
+            :src="tertiaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
         </div>
         <div
           class="mt-1 flex justify-center rounded-lg border border-blue-300 p-2"
-          v-if="product.productFile4Name"
+          v-if="quaternaryImage"
         >
           <img
-            :src="getProductImageUrl(product, 3, { showPlaceholder: false })"
-            @error="$event.target.src = '/images/no-image.png'"
+            :src="quaternaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
@@ -122,8 +125,8 @@ function showCartPopup(value) {
         class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 p-4"
       >
         <div
-          v-if="product.productSpecialPrice > 0"
-          class="bg-opacity-55 absolute mt-2 flex items-center rounded-2xl bg-red-500 px-3 py-1 text-white backdrop-blur"
+          v-if="product.productSpecial > 0"
+          class="absolute mt-2 flex items-center rounded-2xl bg-red-500/55 px-3 py-1 text-white backdrop-blur"
         >
           <span class="text-sm">On Sale:</span>
           &nbsp;
@@ -132,8 +135,8 @@ function showCartPopup(value) {
           </span>
         </div>
         <img
-          :src="product.imageUrls?.[0]"
-          @error="$event.target.src = '/images/no-image.png'"
+          :src="primaryImage"
+          @error="handleImageError"
           class="max-h-full max-w-full cursor-pointer self-center"
           alt="Product Image"
         />
@@ -142,20 +145,28 @@ function showCartPopup(value) {
         <div class="h-7">
           <span
             class="text-xl font-semibold"
-            :class="product.productSpecialPrice > 0 ? 'line-through' : ''"
+            :class="product.productSpecial > 0 ? 'line-through' : ''"
           >
             {{ formatter.format(product.productPrice) }}
           </span>
         </div>
         <button
-          class="mt-3 rounded border border-green-500 bg-green-400 p-2 text-sm font-semibold shadow-lg"
+          class="mt-3 cursor-pointer rounded border border-green-500 bg-green-400 p-2 text-sm font-semibold shadow-lg disabled:cursor-not-allowed disabled:bg-neutral-400"
           @click="addToCart"
+          :disabled="
+            product.productStockStatus === 'Out of Stock' ||
+            product.productStockStatus === 'Pre-Order'
+          "
         >
           Add to Cart
         </button>
+        <div class="mt-4">
+          <p class="text-sm font-semibold">Stock Status:</p>
+          <p class="text-sm">{{ product.productStockStatus }}</p>
+        </div>
         <div class="mt-4 max-w-60">
           <p class="text-sm font-semibold">Product Information</p>
-          <p v-html="product.productDescription" class="pt-3 text-sm"></p>
+          <p class="pt-3 text-sm whitespace-pre-line" v-html="product.productDescription"></p>
         </div>
       </div>
     </div>

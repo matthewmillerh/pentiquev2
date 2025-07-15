@@ -3,10 +3,12 @@ import { nextTick, onMounted, ref, onBeforeUnmount } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
 import CancelButton from '../shared/buttons/CancelButton.vue'
 import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
-import { formatter } from '@/scripts/global'
-import { getProductImageUrl } from '@/utils/imageUtils.js'
 import EditProductImage from '@/components/admin/images/EditProductImage.vue'
-import DeleteButton from '../shared/buttons/DeleteButton.vue'
+import { useProductImages } from '@/composables/useProductImages'
+import DeleteButton from '@/components/shared/buttons/DeleteButton.vue'
+
+const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'
+const NO_IMAGE_URL = `${API_BASE_URL}/images/no-image.png`
 
 const categoryInput = ref(null)
 const modalWrapper = ref(null)
@@ -14,7 +16,6 @@ const modalWrapper = ref(null)
 // Arrays to hold new image files and URLs for previews
 const newImageFiles = ref([null, null, null, null])
 const newImageUrls = ref([null, null, null, null])
-const imageKeys = ref([Date.now(), Date.now() + 1, Date.now() + 2, Date.now() + 3]) // For forcing re-renders
 
 const emit = defineEmits(['update', 'close', 'delete'])
 
@@ -28,6 +29,10 @@ const props = defineProps({
 
 const productDetailsCopy = ref({ ...props.productDetails }) // This will hold the product details passed from the parent component
 
+//get image URLs and handle image errors using the composable
+const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
+  useProductImages(productDetailsCopy)
+
 onMounted(() => {
   // Set focus on the input field for the new category name
   nextTick(() => {
@@ -39,9 +44,28 @@ onMounted(() => {
 
 // Returns the correct image for each slot
 const displayedImage = (idx) => {
+  // If there's a new image being previewed, show it
   if (newImageUrls.value[idx]) return newImageUrls.value[idx]
-  //return getProductImageUrl(productDetailsCopy.value, idx, { showPlaceholder: true })
-  return productDetailsCopy.value.imageUrls?.[idx] || '/images/no-image.png'
+
+  // Debug: Log the value to see what we're actually getting
+  const imageValue = productDetailsCopy.value[`productImage${idx}`]
+
+  // If the original image has been deleted or is falsy/empty, show no-image
+  if (!imageValue || typeof imageValue !== 'string' || imageValue.trim() === '') {
+    return NO_IMAGE_URL
+  }
+
+  // Otherwise show the original image from the composable
+  switch (idx) {
+    case 0:
+      return primaryImage.value || NO_IMAGE_URL
+    case 1:
+      return secondaryImage.value || NO_IMAGE_URL
+    case 2:
+      return tertiaryImage.value || NO_IMAGE_URL
+    case 3:
+      return quaternaryImage.value || NO_IMAGE_URL
+  }
 }
 
 // Triggers the create function in the parent component and then closes the modal
@@ -84,6 +108,18 @@ const unMount = () => {
   emit('close')
 }
 
+// Handle image deletion
+function onImageDelete(idx) {
+  newImageFiles.value[idx] = null
+  if (newImageUrls.value[idx]) {
+    URL.revokeObjectURL(newImageUrls.value[idx])
+    newImageUrls.value[idx] = null
+  }
+  productDetailsCopy.value[`productImage${idx}`] = ''
+  console.log(`Image at index ${idx} deleted. ${productDetailsCopy.value[`productImage${idx}`]}`)
+}
+
+// Handle image change
 function onImageChange(event, idx) {
   const file = event.target.files[0]
   if (file) {
@@ -92,25 +128,13 @@ function onImageChange(event, idx) {
       URL.revokeObjectURL(newImageUrls.value[idx])
     }
     newImageUrls.value[idx] = URL.createObjectURL(file)
-    productDetailsCopy.value[`productImage${idx}`] = appendSuffix(
-      `${productDetailsCopy.value.productID}/${file.name}`,
-      `_${idx}`,
-    )
-    // Update image key to force re-render
-    imageKeys.value[idx] = Date.now()
+
+    // Get file extension
+    const fileExtension = file.name.substring(file.name.lastIndexOf('.'))
+    // Set filename as productID_index.extension
+    productDetailsCopy.value[`productImage${idx}`] =
+      `${productDetailsCopy.value.productID}_${idx}${fileExtension}`
   }
-}
-
-// Helper function to append _0, _1, _2, _3 before file extension
-function appendSuffix(filename, suffix) {
-  if (!filename) return filename
-  const dotIndex = filename.lastIndexOf('.')
-  if (dotIndex === -1) return filename + suffix
-  return filename.slice(0, dotIndex) + suffix + filename.slice(dotIndex)
-}
-
-function onImgError(event) {
-  event.target.src = '/images/no-image.png'
 }
 
 onBeforeUnmount(() => {
@@ -137,47 +161,46 @@ onBeforeUnmount(() => {
 
     <input
       type="text"
-      class="w-full rounded-lg px-1 text-center font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-none"
+      class="w-full rounded-lg bg-neutral-100 px-2 py-1 text-center font-semibold shadow-sm focus:shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
       v-model="productDetailsCopy.productName"
     />
     <input
       type="text"
-      class="w-full rounded-lg px-1 text-center font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-none"
+      class="w-full rounded-lg bg-neutral-100 px-2 py-1 text-center font-semibold shadow-sm focus:shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
       v-model="productDetailsCopy.productCode"
     />
     <EditProductImage
-      :key="imageKeys[0]"
       :image-url="displayedImage(0)"
       :image-index="0"
       @change="onImageChange"
-      @error="onImgError"
+      @error="handleImageError"
     ></EditProductImage>
-    <div class="grid max-h-48 w-full grid-cols-3 grid-rows-1 gap-2 rounded-lg">
-      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+    <div class="mt-2 grid max-h-48 w-full grid-cols-3 grid-rows-1 gap-2 rounded-lg">
+      <div class="flex w-full justify-center rounded-lg">
         <EditProductImage
-          :key="imageKeys[1]"
           :image-url="displayedImage(1)"
           :image-index="1"
           @change="onImageChange"
-          @error="onImgError"
+          @error="handleImageError"
+          @delete="onImageDelete"
         ></EditProductImage>
       </div>
-      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+      <div class="flex w-full justify-center rounded-lg">
         <EditProductImage
-          :key="imageKeys[2]"
           :image-url="displayedImage(2)"
           :image-index="2"
           @change="onImageChange"
-          @error="onImgError"
+          @error="handleImageError"
+          @delete="onImageDelete"
         ></EditProductImage>
       </div>
-      <div class="flex h-44 max-h-44 w-full justify-center rounded-lg">
+      <div class="flex w-full justify-center rounded-lg">
         <EditProductImage
-          :key="imageKeys[3]"
           :image-url="displayedImage(3)"
           :image-index="3"
           @change="onImageChange"
-          @error="onImgError"
+          @error="handleImageError"
+          @delete="onImageDelete"
         ></EditProductImage>
       </div>
     </div>
@@ -185,7 +208,7 @@ onBeforeUnmount(() => {
     <p class="w-full min-w-[350px] text-start text-sm font-semibold">Product Description:</p>
     <textarea
       v-model="productDetailsCopy.productDescription"
-      class="max-h-72 w-full rounded-md bg-neutral-100 p-1 text-sm shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
+      class="h-44 max-h-72 w-full rounded-md bg-neutral-100 p-1 text-sm shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
     ></textarea>
     <div class="grid w-full grid-cols-2 justify-start gap-2">
       <div class="">
@@ -218,10 +241,15 @@ onBeforeUnmount(() => {
         />
       </div>
       <div><p class="text-sm font-semibold">Special Price:</p></div>
-      <div>
-        <p class="text-sm">
-          {{ formatter.format(productDetailsCopy.productSpecialPrice) || 'N/A' }}
-        </p>
+      <div class="text-sm">
+        <span>R&nbsp;</span>
+        <input
+          type="number"
+          name="product-special-price"
+          class="rounded-md bg-neutral-100 px-1 shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          v-model="productDetailsCopy.productSpecialPrice"
+          arrows="false"
+        />
       </div>
     </div>
     <select
