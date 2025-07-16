@@ -7,7 +7,7 @@ defineProps({
 </script>
 <template>
   <button
-    class="cursor-pointer rounded-lg bg-red-300 px-2 py-1 text-sm font-semibold shadow-md"
+    class="cursor-pointer rounded-lg bg-red-300 px-4 py-2 text-sm font-semibold shadow-md transition-shadow duration-300 hover:shadow-lg hover:shadow-black/30"
     @click="$emit('delete')"
   >
     <font-awesome-icon :icon="['fas', 'trash']" style="color: black" />

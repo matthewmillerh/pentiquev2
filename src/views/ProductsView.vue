@@ -21,7 +21,7 @@ async function getProductsByCategory() {
     products.value = response.data
     filteredProducts.value = products.value.filter(filterProducts)
   } catch (err) {
-    console.log(err)
+    console.log('Error fetching products:', err)
   }
 }
 

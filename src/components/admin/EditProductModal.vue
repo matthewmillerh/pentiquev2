@@ -6,6 +6,7 @@ import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 import EditProductImage from '@/components/admin/images/EditProductImage.vue'
 import { useProductImages } from '@/composables/useProductImages'
 import DeleteButton from '@/components/shared/buttons/DeleteButton.vue'
+import LoadingSpinner from './ui/LoadingSpinner.vue'
 
 const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'
 const NO_IMAGE_URL = `${API_BASE_URL}/images/no-image.png`
@@ -151,11 +152,8 @@ onBeforeUnmount(() => {
       class="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-black/50"
     >
       <div class="rounded-lg bg-white p-6 text-center shadow-lg">
-        <div
-          class="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"
-        ></div>
-        <p class="text-sm font-semibold">Updating product...</p>
-        <p class="text-xs text-gray-600">Please wait while we save your changes</p>
+        <LoadingSpinner text="Updating product..." />
+        <p class="mt-2 text-xs text-gray-600">Please wait while we save your changes</p>
       </div>
     </div>
 

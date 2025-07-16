@@ -1,6 +1,7 @@
 <script setup>
 import EditProducts from '@/components/admin/EditProducts.vue'
 import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
+import CategoryNavDisplay from '@/components/shared/CategoryNavDisplay.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -33,6 +34,7 @@ watch(
   <div
     class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100 shadow sm:w-[80%] sm:max-w-[80%]"
   >
+    <CategoryNavDisplay v-if="!currentCategory" :isAdmin="true" />
     <EditProducts v-if="currentCategory"></EditProducts>
   </div>
 </template>
