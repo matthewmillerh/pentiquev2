@@ -1,5 +1,5 @@
 <script setup>
-import AdminProductMenuMain from '@/components/admin/AdminProductMenuMain.vue'
+import EditCategoryList from '@/components/admin/EditCategoryList.vue'
 import { axios_api } from '@/scripts/global.js'
 import { onMounted, ref } from 'vue'
 
@@ -20,9 +20,6 @@ async function getAllCategories() {
 }
 </script>
 <template>
-  <AdminProductMenuMain
-    v-if="allCategories.length"
-    :productData="allCategories"
-  ></AdminProductMenuMain>
+  <EditCategoryList v-if="allCategories.length" :productData="allCategories"></EditCategoryList>
 </template>
 <style scoped></style>

@@ -4,10 +4,15 @@ import { axios_api } from '@/scripts/global.js'
 import { useRoute } from 'vue-router'
 import NotificationPopup from '@/components/NotificationPopup.vue'
 import { formatter, saveCart } from '@/scripts/global.js'
+import { useProductImages } from '@/composables/useProductImages'
 
 const product = ref({})
 const route = useRoute()
 const addedToCart = ref(0)
+
+// Get image URLs and handle image errors using the composable
+const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
+  useProductImages(product)
 
 onMounted(() => {
   getProductByID()
@@ -69,7 +74,7 @@ function showCartPopup(value) {
   <div>
     <h1 class="pt-3 pb-0 pl-6 text-lg font-semibold">{{ product.productName }}</h1>
     <div
-      class="justify-left flex flex-wrap p-6"
+      class="justify-left flex flex-wrap gap-4 p-6"
       v-viewer.static="{
         scalable: false,
         rotatable: false,
@@ -78,45 +83,39 @@ function showCartPopup(value) {
         transition: true,
       }"
     >
-      <div class="mr-4 mb-4 grid h-[350px] w-28 grid-cols-1 grid-rows-3 rounded-lg">
-        <div class="mb-1 flex justify-center rounded-lg border border-blue-300 p-2">
+      <div
+        class="mb-4 grid h-[350px] max-w-28 grid-cols-1 grid-rows-3 rounded-lg"
+        v-if="secondaryImage || tertiaryImage || quaternaryImage"
+      >
+        <div
+          class="mb-1 flex justify-center rounded-lg border border-blue-300 p-2"
+          v-if="secondaryImage"
+        >
           <img
-            :src="
-              '/images/' +
-              product.category1Name +
-              '/' +
-              (product.category2Name ? product.category2Name + '/' : '') +
-              (product.category3Name ? product.category3Name + '/' : '') +
-              product.productFileName
-            "
+            :src="secondaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
         </div>
-        <div class="mt-1 mb-1 flex justify-center rounded-lg border border-blue-300 p-2">
+        <div
+          class="mt-1 mb-1 flex justify-center rounded-lg border border-blue-300 p-2"
+          v-if="tertiaryImage"
+        >
           <img
-            :src="
-              '/images/' +
-              product.category1Name +
-              '/' +
-              (product.category2Name ? product.category2Name + '/' : '') +
-              (product.category3Name ? product.category3Name + '/' : '') +
-              product.productFileName
-            "
+            :src="tertiaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
         </div>
-        <div class="mt-1 flex justify-center rounded-lg border border-blue-300 p-2">
+        <div
+          class="mt-1 flex justify-center rounded-lg border border-blue-300 p-2"
+          v-if="quaternaryImage"
+        >
           <img
-            :src="
-              '/images/' +
-              product.category1Name +
-              '/' +
-              (product.category2Name ? product.category2Name + '/' : '') +
-              (product.category3Name ? product.category3Name + '/' : '') +
-              product.productFileName
-            "
+            :src="quaternaryImage"
+            @error="handleImageError"
             class="max-h-full max-w-full cursor-pointer self-center"
             alt="Product Image"
           />
@@ -126,22 +125,18 @@ function showCartPopup(value) {
         class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 p-4"
       >
         <div
-          v-if="product.productSpecialPrice > 0"
-          class="bg-opacity-55 absolute mt-2 flex items-center rounded-2xl bg-red-500 px-3 py-1 text-white backdrop-blur"
+          v-if="product.productSpecial > 0"
+          class="absolute mt-2 flex items-center rounded-2xl bg-red-500/55 px-3 py-1 text-white backdrop-blur"
         >
-          <span class="text-sm">On Sale:</span>&nbsp;<span class="text-sm font-semibold">{{
-            formatter.format(product.productSpecialPrice)
-          }}</span>
+          <span class="text-sm">On Sale:</span>
+          &nbsp;
+          <span class="text-sm font-semibold">
+            {{ formatter.format(product.productSpecialPrice) }}
+          </span>
         </div>
         <img
-          :src="
-            '/images/' +
-            product.category1Name +
-            '/' +
-            (product.category2Name ? product.category2Name + '/' : '') +
-            (product.category3Name ? product.category3Name + '/' : '') +
-            product.productFileName
-          "
+          :src="primaryImage"
+          @error="handleImageError"
           class="max-h-full max-w-full cursor-pointer self-center"
           alt="Product Image"
         />
@@ -150,19 +145,28 @@ function showCartPopup(value) {
         <div class="h-7">
           <span
             class="text-xl font-semibold"
-            :class="product.productSpecialPrice > 0 ? 'line-through' : ''"
-            >{{ formatter.format(product.productPrice) }}</span
+            :class="product.productSpecial > 0 ? 'line-through' : ''"
           >
+            {{ formatter.format(product.productPrice) }}
+          </span>
         </div>
         <button
-          class="mt-3 rounded border border-green-500 bg-green-400 p-2 text-sm font-semibold shadow-lg"
+          class="mt-3 cursor-pointer rounded border border-green-500 bg-green-400 p-2 text-sm font-semibold shadow-lg disabled:cursor-not-allowed disabled:bg-neutral-400"
           @click="addToCart"
+          :disabled="
+            product.productStockStatus === 'Out of Stock' ||
+            product.productStockStatus === 'Pre-Order'
+          "
         >
           Add to Cart
         </button>
+        <div class="mt-4">
+          <p class="text-sm font-semibold">Stock Status:</p>
+          <p class="text-sm">{{ product.productStockStatus }}</p>
+        </div>
         <div class="mt-4 max-w-60">
           <p class="text-sm font-semibold">Product Information</p>
-          <p v-html="product.productDescription" class="pt-3 text-sm"></p>
+          <p class="pt-3 text-sm whitespace-pre-line" v-html="product.productDescription"></p>
         </div>
       </div>
     </div>

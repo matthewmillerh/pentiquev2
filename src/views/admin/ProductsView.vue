@@ -2,7 +2,7 @@
 import { onMounted, onUpdated, ref, watch } from 'vue'
 import { axios_api } from '@/scripts/global'
 import { useRoute } from 'vue-router'
-import ProductCard from '@/components/ProductCard.vue'
+import ProductCard from '@/components/shared/ProductCard.vue'
 
 const subCategories = ref([])
 const products = ref(null)
@@ -69,8 +69,7 @@ function filterProducts(product) {
           :product-availability="product.productStockStatus"
           :productID="product.productID"
           :category1ID="product.category1ID"
-        >
-        </ProductCard>
+        ></ProductCard>
       </div>
     </div>
   </div>

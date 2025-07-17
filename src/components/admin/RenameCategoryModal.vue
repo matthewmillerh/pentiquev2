@@ -1,6 +1,9 @@
 <script setup>
 import { nextTick, onMounted, ref } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
+import CancelButton from '../shared/buttons/CancelButton.vue'
+import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
+import LoadingSpinner from './ui/LoadingSpinner.vue'
 
 const categoryName = ref('')
 const categoryInput = ref(null)
@@ -9,8 +12,12 @@ const modalWrapper = ref(null)
 
 const emit = defineEmits(['update', 'close'])
 
-defineProps({
+const props = defineProps({
   title: String,
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 onMounted(() => {
@@ -26,16 +33,18 @@ onMounted(() => {
 const confirm = () => {
   if (!categoryName.value.trim()) {
     showError.value = true
-  } else {
+  } else if (!props.isLoading) {
     emit('update', categoryName.value)
-    closeWrapper()
+    // Don't close the modal here anymore - let the parent handle it after loading is complete
   }
 }
 
 // Trigger the exit transition in the modal wrapper component
 const closeWrapper = () => {
-  if (modalWrapper.value) {
+  if (!props.isLoading && modalWrapper.value) {
     modalWrapper.value.close()
+  } else if (props.isLoading) {
+    console.log('Cannot close modal while operation is in progress')
   } else {
     console.warn('Child component ref is not available yet.')
   }
@@ -66,19 +75,15 @@ const unMount = () => {
     <div v-if="showError" class="text-sm">
       <span class="text-red-500">This field cannot be empty.</span>
     </div>
+
+    <!-- Loading Spinner -->
+    <div v-if="isLoading" class="py-2">
+      <LoadingSpinner text="Updating category..." />
+    </div>
+
     <div class="flex gap-2">
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-red-300 px-2 py-1 shadow-md"
-        @click="closeWrapper"
-      >
-        <span>Cancel</span>
-      </button>
-      <button
-        class="inline-flex cursor-pointer items-center justify-center rounded-md bg-green-300 px-2 py-1 shadow-md"
-        @click="confirm()"
-      >
-        <span>Confirm</span>
-      </button>
+      <CancelButton @close="closeWrapper()" :disabled="isLoading"></CancelButton>
+      <ConfirmButton @confirm="confirm()" :disabled="isLoading"></ConfirmButton>
     </div>
   </ModalWrapper>
 </template>
