@@ -45,9 +45,10 @@ watch(
 
 const filterProducts = (product) => {
   return (
-    product.category1Name === currentCategory.value ||
-    product.category2Name === currentCategory.value ||
-    product.category3Name === currentCategory.value
+    (product.category1Name === currentCategory.value ||
+      product.category2Name === currentCategory.value ||
+      product.category3Name === currentCategory.value) &&
+    product.productHidden !== 1
   )
 }
 </script>

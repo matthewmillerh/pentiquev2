@@ -26,11 +26,20 @@ defineExpose({
   <Transition name="modal-wrapper" @after-leave="$emit('close')">
     <div
       v-if="show"
-      class="fixed top-0 right-0 bottom-0 left-0 z-20 bg-black/10 backdrop-blur-md"
+      class="fixed top-0 right-0 bottom-0 left-0 z-[60] overflow-y-auto bg-black/10 backdrop-blur-md"
       @mousedown="show = false"
     >
+      <!-- <div
+        class="modal absolute top-16 left-1/2 z-[70] flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
+        @click.stop
+        @mousedown.stop
+      >
+        <div class="text-lg font-semibold" v-if="title">{{ title }}</div>
+        <div class="font-normal" v-if="message">{{ message }}</div>
+        <slot></slot>
+      </div> -->
       <div
-        class="modal absolute top-16 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
+        class="modal z-[70] mx-auto my-16 flex flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"
         @click.stop
         @mousedown.stop
       >

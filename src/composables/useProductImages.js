@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'
 const fallBackImageUrl = `${API_BASE_URL}/images/no-image.png`
 
 export const useProductImages = (productDetails) => {
-  // Return all image URLs as an array
+  // Return all image URLs as an array with cache-busting
   const imageUrls = computed(() => {
     if (!productDetails?.value?.imageUrls || !Array.isArray(productDetails.value.imageUrls)) {
       console.log('No imageUrls found or not an array:', productDetails?.value?.imageUrls)
@@ -12,7 +12,17 @@ export const useProductImages = (productDetails) => {
       return []
     }
 
-    return productDetails.value.imageUrls
+    // Add cache-busting parameter if cacheKey exists
+    const cacheKey = productDetails.value.cacheKey
+
+    return productDetails.value.imageUrls.map((url) => {
+      if (url && cacheKey) {
+        // Add cache-busting parameter to force browser to reload image
+        const separator = url.includes('?') ? '&' : '?'
+        return `${url}${separator}_t=${cacheKey}`
+      }
+      return url
+    })
   })
 
   // Convenient getters for specific images

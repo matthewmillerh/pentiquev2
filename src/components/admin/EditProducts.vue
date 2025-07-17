@@ -16,7 +16,8 @@ const isUpdating = ref(false)
 const productToEdit = ref(null)
 
 onMounted(() => {
-  setTimeout(() => getProductsByCategory(), 500)
+  //setTimeout(() => getProductsByCategory(), 500)
+  getProductsByCategory()
   currentCategory.value = route.params.category
 })
 
@@ -35,7 +36,8 @@ async function getProductsByCategory() {
 watch(
   () => route.params.category1ID,
   () => {
-    setTimeout(() => getProductsByCategory(), 500)
+    //setTimeout(() => getProductsByCategory(), 500)
+    getProductsByCategory()
   },
 )
 
@@ -94,6 +96,10 @@ const updateProduct = async (updatedProduct, imageFiles) => {
 
     // Wait a moment to ensure the image files are fully written to disk
     await new Promise((resolve) => setTimeout(resolve, 500))
+
+    // Add cache-busting timestamp to force image reload
+    const cacheKey = Date.now()
+    updatedProductFromDB.cacheKey = cacheKey
 
     // Update the UI with the new product data
     const index = products.value.findIndex((p) => p.productID === updatedProduct.productID)

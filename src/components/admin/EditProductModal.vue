@@ -41,6 +41,8 @@ onMounted(() => {
       categoryInput.value.focus()
     }
   })
+
+  console.log('Product details copy:', productDetailsCopy.value.productFeatured)
 })
 
 // Returns the correct image for each slot
@@ -247,6 +249,16 @@ onBeforeUnmount(() => {
           class="rounded-md bg-neutral-100 px-1 shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
           v-model="productDetailsCopy.productSpecialPrice"
           arrows="false"
+        />
+      </div>
+      <div><p class="text-sm font-semibold">Featured Category Image:</p></div>
+      <div>
+        <input
+          type="checkbox"
+          name="product-featured"
+          v-model="productDetailsCopy.productFeatured"
+          :true-value="1"
+          :false-value="0"
         />
       </div>
     </div>
