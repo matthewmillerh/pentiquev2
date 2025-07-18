@@ -122,7 +122,7 @@ function showCartPopup(value) {
         </div>
       </div>
       <div
-        class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 p-4"
+        class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 p-4 shadow-md shadow-blue-500/50 transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/80"
       >
         <div
           v-if="product.productSpecial > 0"
@@ -137,7 +137,7 @@ function showCartPopup(value) {
         <img
           :src="primaryImage"
           @error="handleImageError"
-          class="max-h-full max-w-full cursor-pointer self-center"
+          class="max-h-full max-w-full cursor-pointer self-center shadow-md shadow-black/20"
           alt="Product Image"
         />
       </div>

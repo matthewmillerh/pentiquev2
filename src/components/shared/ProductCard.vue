@@ -8,12 +8,12 @@ const props = defineProps(['productDetails'])
 // Convert props to ref for the composable
 const productRef = computed(() => props.productDetails)
 
-const { primaryImage, handleImageError } = useProductImages(productRef)
+const { primaryThumbnail, handleImageError } = useProductImages(productRef)
 </script>
 
 <template>
   <div
-    class="flex w-52 max-w-52 flex-col items-center rounded-lg border border-blue-300 bg-blue-200 p-2 shadow-md"
+    class="flex w-52 max-w-52 flex-col items-center rounded-lg border border-blue-300 bg-blue-200 p-2 shadow-md transition-all duration-300 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/50"
   >
     <h2 class="mt-2 mb-1 h-10 max-h-10 overflow-hidden text-center text-sm font-semibold">
       {{ productDetails.productName }}
@@ -30,7 +30,7 @@ const { primaryImage, handleImageError } = useProductImages(productRef)
         </span>
       </div>
       <img
-        :src="primaryImage"
+        :src="primaryThumbnail"
         @error="handleImageError"
         class="max-h-full max-w-full self-center shadow-sm"
         :alt="`${productDetails.productName}`"

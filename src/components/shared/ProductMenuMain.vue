@@ -8,19 +8,19 @@ const isAdmin = ref(false) // This is used to conditionally render admin links
 
 const route = useRoute()
 onMounted(() => {
-  getAllCategories()
-
   if (route.path.startsWith('/admin')) {
     isAdmin.value = true
   } else {
     isAdmin.value = false
   }
+  getAllCategories()
 })
 
 //get all the categories and subcategories
 async function getAllCategories() {
+  const routeUrl = isAdmin.value ? '/admin/get-all-categories' : '/get-all-categories'
   try {
-    const response = await axios_api.get('/get-all-categories')
+    const response = await axios_api.get(routeUrl)
     allCategories.value = response.data
   } catch (err) {
     console.log(err)

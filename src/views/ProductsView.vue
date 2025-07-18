@@ -10,7 +10,8 @@ const route = useRoute()
 const currentCategory = ref(null)
 
 onMounted(() => {
-  setTimeout(() => getProductsByCategory(), 500)
+  //setTimeout(() => getProductsByCategory(), 500)
+  getProductsByCategory()
   currentCategory.value = route.params.category
 })
 
@@ -29,7 +30,8 @@ async function getProductsByCategory() {
 watch(
   () => route.params.category1ID,
   () => {
-    setTimeout(() => getProductsByCategory(), 500)
+    //setTimeout(() => getProductsByCategory(), 500)
+    getProductsByCategory()
   },
 )
 

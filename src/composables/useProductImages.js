@@ -31,6 +31,11 @@ export const useProductImages = (productDetails) => {
   const tertiaryImage = computed(() => imageUrls.value[2] || null)
   const quaternaryImage = computed(() => imageUrls.value[3] || null)
 
+  const primaryThumbnail = computed(() => imageUrls.value[4] || fallBackImageUrl)
+  const secondaryThumbnail = computed(() => imageUrls.value[5] || null)
+  const tertiaryThumbnail = computed(() => imageUrls.value[6] || null)
+  const quaternaryThumbnail = computed(() => imageUrls.value[7] || null)
+
   // Helper function to get image by index
   const getImageByIndex = (index) => {
     return imageUrls.value[index] || fallBackImageUrl
@@ -47,6 +52,10 @@ export const useProductImages = (productDetails) => {
     secondaryImage,
     tertiaryImage,
     quaternaryImage,
+    primaryThumbnail,
+    secondaryThumbnail,
+    tertiaryThumbnail,
+    quaternaryThumbnail,
     getImageByIndex,
     handleImageError,
   }
