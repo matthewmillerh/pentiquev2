@@ -1,28 +1,12 @@
 <script setup>
 import { RouterView } from 'vue-router'
-import { onMounted, ref } from 'vue'
-import { axios_api } from '@/scripts/global'
+import { ref } from 'vue'
 import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
 import ProductMenuMobile from '@/components/ProductMenuMobile.vue'
 import MainNavMenu from '@/components/MainNavMenu.vue'
 
-const allCategories = ref([])
 const cartItemCount = ref(0)
 const showMobileMenu = ref(false)
-
-onMounted(() => {
-  getAllCategories()
-})
-
-//get all the categories and subcategories
-async function getAllCategories() {
-  try {
-    const response = await axios_api.get('/get-all-categories')
-    allCategories.value = response.data
-  } catch (err) {
-    console.log(err)
-  }
-}
 
 function toggleMobileMenu() {
   showMobileMenu.value = !showMobileMenu.value

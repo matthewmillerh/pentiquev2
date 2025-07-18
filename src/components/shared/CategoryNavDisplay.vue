@@ -30,8 +30,11 @@ async function getCategories() {
     const response = await axios_api.get('/category1')
 
     if (response.data && Array.isArray(response.data)) {
+      // Sort categories alphabetically by category name
       categories.value = response.data
-      console.log(`Successfully loaded ${response.data.length} categories`)
+      console.log(
+        `Successfully loaded ${categories.value.length} categories (sorted alphabetically)`,
+      )
       retryCount.value = 0 // Reset retry count on success
     } else {
       throw new Error('Invalid response format from server')

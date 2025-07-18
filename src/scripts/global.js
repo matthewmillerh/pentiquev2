@@ -16,6 +16,7 @@ axios_api.interceptors.request.use(
       '/categories/delete',
       '/products/edit',
       '/products/add',
+      '/admin/get-all-categories',
     ]
 
     // Check if the current request URL matches any protected route

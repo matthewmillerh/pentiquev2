@@ -215,7 +215,13 @@ onBeforeUnmount(() => {
         <p class="text-sm font-semibold">Hide Product?</p>
       </div>
       <div>
-        <input type="checkbox" name="product-hidden" v-model="productDetailsCopy.productHidden" />
+        <input
+          type="checkbox"
+          name="product-hidden"
+          v-model="productDetailsCopy.productHidden"
+          :true-value="1"
+          :false-value="0"
+        />
       </div>
       <div><p class="text-sm font-semibold">Price:</p></div>
       <div class="text-sm">
