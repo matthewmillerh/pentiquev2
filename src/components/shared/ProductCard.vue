@@ -9,6 +9,7 @@ const props = defineProps(['productDetails'])
 const productRef = computed(() => props.productDetails)
 
 const { primaryThumbnail, handleImageError } = useProductImages(productRef)
+console.log(primaryThumbnail, 'Primary Thumbnail Loaded')
 </script>
 
 <template>
