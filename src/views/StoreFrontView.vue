@@ -15,7 +15,7 @@ function toggleMobileMenu() {
 
 <template>
   <!-- Mobile nav menu -->
-  <div class="sm:hidden">
+  <div class="lg:hidden">
     <Transition name="mobile-nav-menu">
       <ProductMenuMobile
         v-if="showMobileMenu"
@@ -33,7 +33,8 @@ function toggleMobileMenu() {
   <!-- Main content -->
   <div class="mt-28">
     <div
-      class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 shadow sm:block"
+      class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 shadow lg:block"
+      style="z-index: 20"
     >
       <!-- Product side menu -->
       <ProductMenuMain></ProductMenuMain>
@@ -41,7 +42,8 @@ function toggleMobileMenu() {
 
     <!-- Main router view content -->
     <div
-      class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100 shadow sm:w-[80%] sm:max-w-[80%]"
+      class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100/30 pt-4 pb-8 shadow backdrop-blur-md lg:w-[80%] lg:max-w-[80%]"
+      style="position: relative; z-index: 10"
     >
       <router-view v-slot="{ Component }">
         <component :is="Component" />

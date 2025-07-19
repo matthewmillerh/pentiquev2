@@ -56,7 +56,9 @@ const filterProducts = (product) => {
 </script>
 <template>
   <div>
-    <h1 class="p-3 text-center text-lg font-semibold">{{ currentCategory }}</h1>
+    <h1 class="p-3 text-center text-2xl font-semibold">
+      <span class="rounded-4xl bg-white/40 px-6 py-2 shadow-md">{{ currentCategory }}</span>
+    </h1>
     <div class="flex flex-wrap justify-center gap-5 p-4">
       <div v-for="product in filteredProducts" :key="product.productID">
         <RouterLink :to="`/product/${product.productID}/${product.category1ID}`">

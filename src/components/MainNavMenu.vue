@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 import Close from 'vue-material-design-icons/Close.vue'
+import MainNavItem from './shared/buttons/MainNavItem.vue'
 
 const cartItemCount = ref(0)
 const showMobileMenu = ref(false)
@@ -33,30 +34,33 @@ function toggleMobileMenu() {
 }
 </script>
 <template>
-  <div class="fixed top-0 right-0 left-0 h-28 bg-white/50 backdrop-blur">
+  <div class="fixed top-0 right-0 left-0 h-32 bg-white/30 backdrop-blur-md" style="z-index: 50">
     <div
-      class="fixed top-5 right-6 left-6 z-40 flex flex-wrap items-center justify-center rounded-lg border border-blue-300 bg-blue-200/60 p-3 shadow shadow-blue-100"
+      class="fixed top-5 right-6 left-6 z-40 flex flex-wrap items-center justify-center gap-x-4 rounded-lg border border-blue-400 bg-blue-200/60 p-3 shadow-md shadow-black/10"
     >
       <!-- Company logo -->
-      <img alt="Pentique logo" src="/images/logo.png" width="100" />
+      <img
+        alt="Pentique logo"
+        src="/images/logo.png"
+        width="100"
+        class="drop-shadow-md drop-shadow-blue-400"
+      />
 
       <!-- Main menu items -->
-      <nav class="hidden p-2 sm:block">
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/">Home</RouterLink>
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/about">
-          About
-        </RouterLink>
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/contact">
-          Contact
-        </RouterLink>
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/shipping">
-          Shipping
-        </RouterLink>
-        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/shopping-cart">
-          Cart (
-          <span class="text-sm font-semibold">{{ cartItemCount }}</span>
-          )
-        </RouterLink>
+      <nav class="hidden gap-2 p-2 lg:flex">
+        <MainNavItem :icon="['fas', 'house']" label="Home" link="/" />
+
+        <MainNavItem :icon="['fas', 'circle-info']" label="About" link="/about" />
+
+        <MainNavItem :icon="['fas', 'address-book']" label="Contact" link="/contact" />
+
+        <MainNavItem :icon="['fas', 'truck-fast']" label="Shipping" link="/shipping" />
+        <MainNavItem
+          :icon="['fas', 'cart-shopping']"
+          label="Cart"
+          link="/shopping-cart"
+          :cart-count="cartItemCount"
+        />
       </nav>
     </div>
 
@@ -65,7 +69,7 @@ function toggleMobileMenu() {
       <button
         v-if="!showMobileMenu"
         @click="toggleMobileMenu()"
-        class="absolute top-11 right-12 z-50 block cursor-pointer sm:hidden"
+        class="absolute top-11 right-12 z-50 block cursor-pointer lg:hidden"
       >
         <menu-icon />
       </button>
@@ -74,7 +78,7 @@ function toggleMobileMenu() {
       <button
         v-if="showMobileMenu"
         @click="toggleMobileMenu()"
-        class="absolute top-11 right-12 z-50 block cursor-pointer sm:hidden"
+        class="absolute top-11 right-12 z-50 block cursor-pointer lg:hidden"
       >
         <close />
       </button>

@@ -34,18 +34,18 @@ function currentCategory(category1ID) {
 </script>
 <template>
   <!-- Main nav list for level 1 categories-->
-  <ul class="text-sm">
+  <ul class="flex flex-col gap-2 bg-white/30 p-4 text-sm backdrop-blur-md">
     <li
       v-for="(category1, index) in allCategories"
       :key="index"
-      class="rounded-lg border-white not-last:border-b"
+      class="rounded-lg border border-white/30 bg-white/30 shadow-md transition-all duration-300 ease-in-out hover:shadow-blue-400/60"
     >
       <!-- Loop through all top level categories -->
       <!-- RouterLink to the top level category for admin -->
       <RouterLink
         v-if="isAdmin"
         :to="`/admin/edit-products/${category1.name}/${category1.id}`"
-        class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all"
+        class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all duration-300 ease-in-out"
       >
         {{ category1.name }}
       </RouterLink>
@@ -54,7 +54,7 @@ function currentCategory(category1ID) {
       <RouterLink
         v-else
         :to="currentCategory(category1.id) ? '/' : `/products/${category1.name}/${category1.id}`"
-        class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all"
+        class="category-item block h-full w-full rounded-lg px-3 py-2 transition-all duration-300 ease-in-out"
       >
         {{ category1.name }}
       </RouterLink>
@@ -71,7 +71,7 @@ function currentCategory(category1ID) {
                 <RouterLink
                   v-if="isAdmin"
                   :to="`/admin/edit-products/${category2.name}/${category1.id}`"
-                  class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all"
+                  class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all duration-300 ease-in-out"
                 >
                   - {{ category2.name }}
                 </RouterLink>
@@ -80,7 +80,7 @@ function currentCategory(category1ID) {
                 <RouterLink
                   v-else
                   :to="`/products/${category2.name}/${category1.id}`"
-                  class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all"
+                  class="category-item block rounded-lg py-1 pr-2 pl-4 transition-all duration-300 ease-in-out"
                 >
                   - {{ category2.name }}
                 </RouterLink>
@@ -92,7 +92,7 @@ function currentCategory(category1ID) {
                     <RouterLink
                       v-if="isAdmin"
                       :to="`/admin/edit-products/${category3.name}/${category1.id}`"
-                      class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all"
+                      class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all duration-300 ease-in-out"
                     >
                       -- {{ category3.name }}
                     </RouterLink>
@@ -101,7 +101,7 @@ function currentCategory(category1ID) {
                     <RouterLink
                       v-else
                       :to="`/products/${category3.name}/${category1.id}`"
-                      class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all"
+                      class="category-item block rounded-lg py-1 pr-2 pl-8 transition-all duration-300 ease-in-out"
                     >
                       -- {{ category3.name }}
                     </RouterLink>
@@ -124,7 +124,7 @@ function currentCategory(category1ID) {
 }
 
 .category-item:hover {
-  background-color: rgba(138, 172, 233, 0.659);
+  background-color: rgba(114, 159, 242, 0.664);
   cursor: pointer;
 }
 

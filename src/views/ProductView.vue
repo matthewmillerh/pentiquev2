@@ -122,7 +122,7 @@ function showCartPopup(value) {
         </div>
       </div>
       <div
-        class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 p-4 shadow-md shadow-blue-500/50 transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/80"
+        class="mb-4 flex h-[350px] max-w-64 justify-center rounded-lg border border-blue-300 bg-white/30 p-4 shadow-md shadow-blue-500/50 transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-400"
       >
         <div
           v-if="product.productSpecial > 0"
