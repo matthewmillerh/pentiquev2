@@ -33,10 +33,10 @@ async function getAllCategories() {
 </script>
 <template>
   <div
-    class="mobile-nav bg-opacity-50 fixed top-32 right-0 bottom-0 left-0 z-50 overflow-y-auto overscroll-y-none bg-white/30 backdrop-blur"
+    class="mobile-nav bg-opacity-50 fixed top-18 right-0 bottom-0 left-0 z-50 overflow-y-auto overscroll-y-none bg-white/30 backdrop-blur"
     v-if="showMenu"
   >
-    <ul class="mb-8 flex w-full flex-col items-center gap-2 text-center">
+    <ul class="mb-8 flex w-full flex-col items-center gap-2 pt-4 text-center">
       <li class="font-semibold">
         <RouterLink @click="closeMenu()" class="main-nav-link rounded-lg transition-all" to="/">
           Home
