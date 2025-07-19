@@ -14,6 +14,10 @@ const addedToCart = ref(0)
 const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
   useProductImages(product)
 
+// Debug the primary image
+console.log('Primary image URL:', primaryImage.value)
+console.log('Product data:', product.value)
+
 onMounted(() => {
   getProductByID()
 
@@ -41,6 +45,8 @@ async function getProductByID() {
   try {
     const response = await axios_api.get('/products/' + route.params.productID)
     product.value = response.data
+    console.log('Product loaded:', product.value)
+    console.log('Product imageUrls:', product.value.imageUrls)
   } catch (err) {
     console.log(err)
   }
@@ -135,11 +141,16 @@ function showCartPopup(value) {
           </span>
         </div>
         <img
+          v-if="product.productID"
           :src="primaryImage"
           @error="handleImageError"
           class="max-h-full max-w-full cursor-pointer self-center shadow-md shadow-black/20"
           alt="Product Image"
+          :key="product.productID"
         />
+        <div v-else class="flex h-full w-full items-center justify-center text-gray-400">
+          Loading...
+        </div>
       </div>
       <div class="ml-4">
         <div class="h-7">
