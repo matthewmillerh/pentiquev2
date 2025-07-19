@@ -22,6 +22,11 @@ import {
   faTrash,
   faEdit,
   faSquarePlus,
+  faHouse,
+  faCircleInfo,
+  faAddressBook,
+  faTruckFast,
+  faCartShopping,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithub,
@@ -57,6 +62,11 @@ library.add(
   faTrash,
   faEdit,
   faSquarePlus,
+  faHouse,
+  faCircleInfo,
+  faAddressBook,
+  faTruckFast,
+  faCartShopping,
 )
 
 import App from './App.vue'

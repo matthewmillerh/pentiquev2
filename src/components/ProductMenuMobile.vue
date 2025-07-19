@@ -33,74 +33,93 @@ async function getAllCategories() {
 </script>
 <template>
   <div
-    class="mobile-nav bg-opacity-50 fixed top-28 right-0 bottom-0 left-0 z-50 overflow-y-auto overscroll-y-none bg-white backdrop-blur"
+    class="mobile-nav bg-opacity-50 fixed top-32 right-0 bottom-0 left-0 z-50 overflow-y-auto overscroll-y-none bg-white/30 backdrop-blur"
     v-if="showMenu"
   >
-    <ul class="mb-8 w-full text-center">
-      <li class="py-2 font-semibold">
-        <RouterLink @click="closeMenu()" class="main-nav-link rounded-lg transition-all" to="/"
-          >Home</RouterLink
-        >
+    <ul class="mb-8 flex w-full flex-col items-center gap-2 text-center">
+      <li class="font-semibold">
+        <RouterLink @click="closeMenu()" class="main-nav-link rounded-lg transition-all" to="/">
+          Home
+        </RouterLink>
       </li>
-      <li class="py-2 font-semibold">
-        <RouterLink @click="closeMenu()" class="main-nav-link rounded-lg transition-all" to="/about"
-          >About</RouterLink
+      <li class="font-semibold">
+        <RouterLink
+          @click="closeMenu()"
+          class="main-nav-link rounded-lg transition-all"
+          to="/about"
         >
+          About
+        </RouterLink>
       </li>
-      <li class="py-2 font-semibold">
+      <li class="font-semibold">
         <RouterLink
           @click="closeMenu()"
           class="main-nav-link rounded-lg transition-all"
           to="/contact"
-          >Contact</RouterLink
         >
+          Contact
+        </RouterLink>
       </li>
-      <li class="py-2 font-semibold">
+      <li class="font-semibold">
         <RouterLink
           @click="closeMenu()"
           class="main-nav-link rounded-lg transition-all"
           to="/shipping"
-          >Shipping</RouterLink
         >
+          Shipping
+        </RouterLink>
       </li>
-      <li class="py-2 font-semibold">
+      <li class="font-semibold">
         <RouterLink
           @click="closeMenu()"
           class="main-nav-link rounded-lg transition-all"
           to="/shopping-cart"
-          >Cart (<span class="text-sm font-semibold">{{ cartItemCount }}</span
-          >)</RouterLink
         >
+          Cart (
+          <span class="text-sm font-semibold">{{ cartItemCount }}</span>
+          )
+        </RouterLink>
       </li>
       <li class="mt-2 mb-2 text-2xl">Products</li>
 
       <!-- Loop through each top level category -->
-      <li v-for="(category1, index) in allCategories" :key="index" class="rounded-lg">
+      <li
+        v-for="(category1, index) in allCategories"
+        :key="index"
+        class="w-[80%] rounded-lg bg-blue-400/40 py-4"
+      >
         <RouterLink
           :to="'/products/' + category1.name + '/' + category1.id"
-          class="block h-full w-full rounded-lg px-3 py-2 font-semibold transition-all"
+          class="block h-full rounded-lg px-3 text-xl font-semibold transition-all"
           @click="closeMenu()"
-          >{{ category1.name }}</RouterLink
         >
+          {{ category1.name }}
+        </RouterLink>
         <!-- Loop through each level 2 category -->
-        <ul v-if="category1.subcategories.length">
-          <li v-for="(category2, index) in category1.subcategories" :key="index">
+        <ul v-if="category1.subcategories.length" class="mt-2 flex flex-col items-center gap-1">
+          <li
+            v-for="(category2, index) in category1.subcategories"
+            :key="index"
+            class="flex flex-col items-center"
+          >
             <RouterLink
               :to="'/products/' + category2.name + '/' + category1.id"
-              class="block rounded-lg py-1 pr-2 pl-4 transition-all"
+              class="block w-fit rounded-lg bg-white/40 px-4 py-1 transition-all hover:bg-white/50"
               @click="closeMenu()"
-              >{{ category2.name }}</RouterLink
             >
+              {{ category2.name }}
+            </RouterLink>
 
             <!-- Loop through each level 3 category -->
             <ul v-if="category2.subcategories.length">
               <li v-for="(category3, index) in category2.subcategories" :key="index">
                 <RouterLink
                   :to="'/products/' + category3.name + '/' + category1.id"
-                  class="block rounded-lg py-1 pr-2 pl-8 font-thin transition-all"
+                  class="block rounded-lg py-1 transition-all"
                   @click="closeMenu()"
-                  >{{ category3.name }}</RouterLink
                 >
+                  {{ category3.name }}
+                </RouterLink>
               </li>
             </ul>
           </li>
