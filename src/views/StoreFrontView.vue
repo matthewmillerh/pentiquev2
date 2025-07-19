@@ -27,11 +27,14 @@ function toggleMobileMenu() {
 
   <!-- Main navigation menu -->
   <header>
-    <MainNavMenu @toggle-mobile-menu="toggleMobileMenu()"></MainNavMenu>
+    <MainNavMenu
+      :show-mobile-menu="showMobileMenu"
+      @toggle-mobile-menu="toggleMobileMenu()"
+    ></MainNavMenu>
   </header>
 
   <!-- Main content -->
-  <div class="mt-28">
+  <div class="mt-20 lg:mt-28">
     <div
       class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 shadow lg:block"
       style="z-index: 20"
@@ -94,7 +97,7 @@ function toggleMobileMenu() {
 
 .mobile-nav-menu-enter-from,
 .mobile-nav-menu-leave-to {
-  transform: translateY(-500px);
+  transform: translateY(500px);
   opacity: 0;
 }
 </style>
