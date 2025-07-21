@@ -16,6 +16,7 @@ axios_api.interceptors.request.use(
       '/categories/delete',
       '/products/edit',
       '/products/add',
+      '/products/delete',
       '/admin/get-all-categories',
     ]
 
