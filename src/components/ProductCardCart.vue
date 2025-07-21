@@ -85,7 +85,7 @@ function validateQuantity() {
           Quantity:
           <input
             type="text"
-            class="w-12 rounded px-1"
+            class="w-12 rounded bg-white/50 px-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             v-model="quantityCurrentValue"
             @focusout="resetQuantityBox()"
             @input="$emit('checkout-disabled', checkoutDisabled)"
@@ -106,7 +106,7 @@ function validateQuantity() {
       </p>
       <button
         @click="validateQuantity"
-        class="mt-3 rounded border border-green-400 bg-green-300 px-2 py-1 text-sm font-semibold shadow-md"
+        class="mt-3 cursor-pointer rounded border border-green-400 bg-green-300 px-2 py-1 text-sm font-semibold shadow-md"
         v-if="product.quantity != quantityCurrentValue"
         @mousedown="updateButtonClicked = true"
         @mouseup="updateButtonClicked = false"
@@ -114,7 +114,7 @@ function validateQuantity() {
         Update
       </button>
       <button
-        class="mt-4 rounded border border-red-400 bg-red-300 px-2 py-1 text-sm font-semibold shadow-md"
+        class="mt-4 cursor-pointer rounded border border-red-400 bg-red-300 px-2 py-1 text-sm font-semibold shadow-md"
         @click="$emit('remove-from-cart', index)"
       >
         Remove
