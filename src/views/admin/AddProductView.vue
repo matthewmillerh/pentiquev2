@@ -69,7 +69,7 @@ onMounted(async () => {
 // Load all categories for the dropdown menus
 const loadCategories = async () => {
   try {
-    const response = await axios_api.get('/get-all-categories')
+    const response = await axios_api.get('/admin/get-all-categories')
     allCategories.value = response.data
   } catch (error) {
     console.error('Error loading categories:', error)
