@@ -7,8 +7,6 @@ export const useProductImages = (productDetails) => {
   // Return all image URLs as an array with cache-busting
   const imageUrls = computed(() => {
     if (!productDetails?.value?.imageUrls || !Array.isArray(productDetails.value.imageUrls)) {
-      console.log('No imageUrls found or not an array:', productDetails?.value?.imageUrls)
-      console.log('ProductDetails:', productDetails?.value)
       return []
     }
 

@@ -109,7 +109,7 @@ function setCheckoutButton(value) {
         </p>
       </div>
       <button
-        class="mr-3 rounded border border-red-400 bg-red-300 px-2 py-1 text-sm font-semibold shadow-md"
+        class="mr-3 cursor-pointer rounded border border-red-400 bg-red-300 px-2 py-1 text-sm font-semibold shadow-md"
         @click="emptyCart"
       >
         Empty Cart
@@ -117,7 +117,7 @@ function setCheckoutButton(value) {
       <RouterLink to="/checkout" v-slot="{ navigate }">
         <button
           @click="navigate"
-          class="mr-3 rounded border border-green-400 bg-green-300 px-2 py-1 text-sm font-semibold shadow-md disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-300"
+          class="mr-3 cursor-pointer rounded border border-green-400 bg-green-300 px-2 py-1 text-sm font-semibold shadow-md disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-300"
           :disabled="checkoutDisabled"
         >
           Continue to Checkout

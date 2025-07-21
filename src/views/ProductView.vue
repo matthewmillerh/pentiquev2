@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, nextTick, watch } from 'vue'
 import { axios_api } from '@/scripts/global.js'
 import { useRoute } from 'vue-router'
 import NotificationPopup from '@/components/NotificationPopup.vue'
@@ -9,14 +9,37 @@ import { useProductImages } from '@/composables/useProductImages'
 const product = ref({})
 const route = useRoute()
 const addedToCart = ref(0)
+const viewerContainer = ref(null)
 
 // Get image URLs and handle image errors using the composable
 const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
   useProductImages(product)
 
-// Debug the primary image
-console.log('Primary image URL:', primaryImage.value)
-console.log('Product data:', product.value)
+onMounted(() => {
+  getProductByID()
+
+  //Create a cart in localStorage if it doesn't already exist
+  createCart()
+
+  //Scroll to the top of the page when displaying a product
+  scrollToTop()
+})
+
+// Watch for product changes and reinitialize viewer
+watch(
+  () => product.value.productID,
+  async (newProductID) => {
+    if (newProductID && viewerContainer.value) {
+      await nextTick()
+      // Force viewer to reinitialize by updating the viewer container
+      const viewer = viewerContainer.value.__viewer
+      if (viewer) {
+        viewer.destroy()
+      }
+      // The v-viewer directive will automatically reinitialize
+    }
+  },
+)
 
 onMounted(() => {
   getProductByID()
@@ -45,8 +68,6 @@ async function getProductByID() {
   try {
     const response = await axios_api.get('/products/' + route.params.productID)
     product.value = response.data
-    console.log('Product loaded:', product.value)
-    console.log('Product imageUrls:', product.value.imageUrls)
   } catch (err) {
     console.log(err)
   }
@@ -80,6 +101,7 @@ function showCartPopup(value) {
   <div>
     <h1 class="pt-3 pb-0 pl-6 text-lg font-semibold">{{ product.productName }}</h1>
     <div
+      ref="viewerContainer"
       class="justify-left flex flex-wrap gap-4 p-6"
       v-viewer.static="{
         scalable: false,
@@ -88,6 +110,7 @@ function showCartPopup(value) {
         navbar: false,
         transition: true,
       }"
+      :key="product.productID"
     >
       <div
         class="mb-4 grid h-[350px] max-w-28 grid-cols-1 grid-rows-3 rounded-lg"
@@ -146,7 +169,6 @@ function showCartPopup(value) {
           @error="handleImageError"
           class="max-h-full max-w-full cursor-pointer self-center shadow-md shadow-black/20"
           alt="Product Image"
-          :key="product.productID"
         />
         <div v-else class="flex h-full w-full items-center justify-center text-gray-400">
           Loading...
