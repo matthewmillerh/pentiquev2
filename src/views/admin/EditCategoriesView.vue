@@ -12,7 +12,7 @@ onMounted(() => {
 //get all the categories and subcategories
 async function getAllCategories() {
   try {
-    const response = await axios_api.get('/get-all-categories')
+    const response = await axios_api.get('/admin/get-all-categories')
     allCategories.value = response.data
   } catch (err) {
     console.log(err)
