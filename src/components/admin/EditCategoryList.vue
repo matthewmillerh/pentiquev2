@@ -28,7 +28,7 @@ onMounted(() => {
 // Function to refresh categories from the server
 const refreshCategoriesFromServer = async () => {
   try {
-    const response = await axios_api.get('/get-all-categories')
+    const response = await axios_api.get('/admin/get-all-categories')
     if (response.status === 200 && response.data) {
       allCategories.value = response.data
       await nextTick()
@@ -318,3 +318,4 @@ const confirmDelete = async () => {
 </template>
 
 <style scoped></style>
+
