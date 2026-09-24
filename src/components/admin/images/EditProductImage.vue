@@ -29,17 +29,17 @@ const triggerFileInput = () => {
 }
 </script>
 <template>
-  <div class="flex flex-col items-center justify-center gap-2">
+  <div class="flex w-full flex-col items-center justify-center gap-2">
     <div
-      class="flex h-full max-w-full cursor-pointer items-center justify-center self-center"
+      class="flex h-full w-full cursor-pointer items-center justify-center self-center"
       @click="triggerFileInput"
     >
       <img
         :src="imageUrl"
         @load="onImageLoad"
         @error="onImageError"
-        class="w-52 self-center rounded-md border border-blue-300 object-contain p-2 shadow-md shadow-black/20 transition-colors hover:border-blue-500"
-        :class="imageIndex === 0 ? 'h-60' : 'h-44'"
+        class="w-full max-w-72 self-center rounded-md border border-blue-300 bg-white object-contain p-2 shadow-md shadow-black/20 transition-colors hover:border-blue-500"
+        :class="imageIndex === 0 ? 'h-64' : 'h-28 sm:h-32'"
         alt="Click to change image"
       />
       <input
@@ -51,7 +51,8 @@ const triggerFileInput = () => {
       />
     </div>
     <DeleteButton
-      text="Delete Image"
+      text="Remove"
+      title="Remove this image"
       @delete="$emit('delete', imageIndex)"
       v-if="imageIndex > 0"
     ></DeleteButton>

@@ -18,6 +18,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  error: { type: String, default: '' },
 })
 
 onMounted(() => {
@@ -75,6 +76,8 @@ const unMount = () => {
     <div v-if="showError" class="text-sm">
       <span class="text-red-500">This field cannot be empty.</span>
     </div>
+
+    <p v-if="error" class="max-w-md text-center text-sm text-red-600">{{ error }}</p>
 
     <!-- Loading Spinner -->
     <div v-if="isLoading" class="py-2">

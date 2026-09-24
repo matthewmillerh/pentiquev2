@@ -7,20 +7,23 @@ const handleClick = () => {
 }
 </script>
 <template>
+  <!-- Quiet until hovered; the page being viewed gets a white pill -->
   <RouterLink
-    class="main-nav-link rounded-xl border border-blue-300 bg-blue-200 px-4 py-2 shadow-md transition-all duration-300 ease-in-out hover:border-blue-400 hover:bg-blue-300 hover:shadow-lg hover:shadow-blue-500/50"
+    class="group flex items-center gap-2 rounded-xl px-3 py-2 whitespace-nowrap text-slate-700 transition-[background-color,color,box-shadow] duration-200 ease-out hover:bg-white/60 hover:text-slate-900 xl:px-4"
+    exact-active-class="is-current bg-white/90 text-slate-900 shadow-sm shadow-blue-900/10"
     :to="link"
     @click="handleClick"
   >
-    <font-awesome-icon :icon="icon" class="text-black/50" />
+    <font-awesome-icon
+      :icon="icon"
+      class="text-slate-500 transition-colors duration-200 group-hover:text-blue-500 group-[.is-current]:text-blue-500"
+    />
     {{ label }}
-    <span v-if="cartCount >= 0" class="ml-2 text-sm font-semibold">({{ cartCount }})</span>
+    <span
+      v-if="cartCount >= 0"
+      class="min-w-5 rounded-full bg-blue-500/15 px-1.5 text-center text-xs leading-5 font-semibold text-blue-700"
+    >
+      {{ cartCount }}
+    </span>
   </RouterLink>
 </template>
-<style scoped>
-.router-link-exact-active {
-  border: 1px solid #60a5fa; /* Tailwind's blue-400 */
-  background-color: #60a5fa; /* Tailwind's blue-300 */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-</style>

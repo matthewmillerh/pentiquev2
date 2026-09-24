@@ -27,7 +27,7 @@ async function getCategories() {
 
     console.log(`Attempting to load categories (attempt ${retryCount.value + 1})...`)
 
-    const response = await axios_api.get('/category1')
+    const response = await axios_api.get('/home-categories')
 
     if (response.data && Array.isArray(response.data)) {
       // Sort categories alphabetically by category name
@@ -105,16 +105,28 @@ const retryLoad = () => {
 
       <!-- Actual categories -->
       <template v-else>
-        <div v-for="categoryDetail in categories" :key="categoryDetail.category1ID">
+        <div v-for="categoryDetail in categories" :key="categoryDetail.categoryID">
           <RouterLink
-            :to="`/admin/edit-products/${categoryDetail.category1Name}/${categoryDetail.category1ID}`"
+            :to="{
+              name: 'edit-products',
+              params: {
+                categoryID: categoryDetail.categoryID,
+                categoryName: categoryDetail.categoryName,
+              },
+            }"
             v-if="isAdmin"
           >
             <ProductCategoryCard :categoryDetails="categoryDetail"></ProductCategoryCard>
           </RouterLink>
           <RouterLink
             v-else
-            :to="'/products/' + categoryDetail.category1Name + '/' + categoryDetail.category1ID"
+            :to="{
+              name: 'category',
+              params: {
+                categoryID: categoryDetail.categoryID,
+                categoryName: categoryDetail.categoryName,
+              },
+            }"
           >
             <ProductCategoryCard :categoryDetails="categoryDetail"></ProductCategoryCard>
           </RouterLink>

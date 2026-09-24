@@ -6,7 +6,17 @@ const show = ref(false) // used to trigger the vue transition when the notificat
 defineProps({
   title: String,
   message: String,
+  // Fills the screen (with a margin on bigger screens): a fixed header and footer, and a body that scrolls on its
+  // own, for content taller than a small laptop screen. Uses the header and footer slots.
+  fullscreen: { type: Boolean, default: false },
 })
+
+// Pressing on the dimmed background closes the modal, but not when the press is on its scrollbar
+const onBackdropMouseDown = (event) => {
+  if (event.target !== event.currentTarget) return
+  if (event.offsetX >= event.currentTarget.clientWidth) return
+  show.value = false
+}
 
 // set the value to true only after the component has been mounted in order for the transtion to be triggered
 onMounted(() => {
@@ -24,10 +34,41 @@ defineExpose({
 
 <template>
   <Transition name="modal-wrapper" @after-leave="$emit('close')">
+    <!-- Full screen: the page behind cannot scroll, the body of the modal scrolls instead -->
     <div
-      v-if="show"
+      v-if="show && fullscreen"
+      class="fixed inset-0 z-[60] overflow-hidden overscroll-contain bg-black/20 backdrop-blur-md sm:p-4 lg:p-8"
+      @mousedown="onBackdropMouseDown"
+    >
+      <div
+        class="modal relative z-[70] mx-auto flex h-full max-w-5xl flex-col overflow-hidden bg-white shadow-xl sm:rounded-xl"
+        role="dialog"
+        aria-modal="true"
+        @click.stop
+        @mousedown.stop
+      >
+        <header
+          v-if="$slots.header"
+          class="flex shrink-0 items-center gap-3 border-b border-gray-200 px-4 py-3 sm:px-6"
+        >
+          <slot name="header"></slot>
+        </header>
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+          <slot></slot>
+        </div>
+        <footer
+          v-if="$slots.footer"
+          class="flex shrink-0 flex-wrap items-center gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3 sm:px-6"
+        >
+          <slot name="footer"></slot>
+        </footer>
+      </div>
+    </div>
+
+    <div
+      v-else-if="show"
       class="fixed top-0 right-0 bottom-0 left-0 z-[60] overflow-y-auto bg-black/10 backdrop-blur-md"
-      @mousedown="show = false"
+      @mousedown="onBackdropMouseDown"
     >
       <!-- <div
         class="modal absolute top-16 left-1/2 z-[70] flex -translate-x-1/2 flex-col items-center gap-4 rounded-md bg-white px-8 py-6 shadow-md lg:max-w-[700px]"

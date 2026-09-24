@@ -1,299 +1,288 @@
 <script setup>
-import { onMounted, ref, nextTick } from 'vue'
-import EditButton from '@/components/shared/buttons/EditButton.vue'
-import DeleteButton from '@/components/shared/buttons/DeleteButton.vue'
+import { computed, onMounted, provide, reactive, ref, nextTick } from 'vue'
 import RenameCategoryModal from '@/components/admin/RenameCategoryModal.vue'
 import DeleteCategoryModal from '@/components/admin/DeleteCategoryModal.vue'
+import MoveCategoryModal from '@/components/admin/MoveCategoryModal.vue'
+import CategoryAdminNode from '@/components/admin/CategoryAdminNode.vue'
 import { axios_api } from '@/scripts/global'
 import CreateCategoryModal from './CreateCategoryModal.vue'
-import AddButton from '../shared/buttons/AddButton.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { findPathIDs, flattenCategories } from '@/utils/categoryTree'
 
 const allCategories = ref([])
 const props = defineProps(['productData'])
 const showRenameModal = ref(false)
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
+const showMoveModal = ref(false)
+const moveMode = ref('move') // 'move' or 'merge'
 const isLoading = ref(false)
-const currentCategory = ref(null)
-const currentCategoryID = ref(null)
-const currentCategoryLevel = ref(null)
-const modalMessage = ref('')
-const categoryPath = ref('')
+const modalError = ref('') // why the last change was refused, shown in the open modal
+const currentCategory = ref(null) // the category the open modal is about
+const createParent = ref(null) // where a new category is created, null is the top level
 
 onMounted(() => {
   allCategories.value = JSON.parse(JSON.stringify(props.productData)) // Create a deep copy of the producData prop
 })
 
+//
+// Tree state shared with every CategoryAdminNode
+//
+const expanded = reactive(new Set())
+const search = ref('')
+const highlightID = ref(null)
+
+const query = computed(() => search.value.trim().toLowerCase())
+
+// While searching, only matching categories and the categories leading to them are shown, all expanded
+const visibleCategories = computed(() => {
+  if (!query.value) return allCategories.value
+  const filter = (nodes) =>
+    nodes
+      .map((node) => {
+        if (node.name.toLowerCase().includes(query.value)) return node
+        const subcategories = filter(node.subcategories)
+        return subcategories.length ? { ...node, subcategories } : null
+      })
+      .filter(Boolean)
+  return filter(allCategories.value)
+})
+
+const categoryCount = computed(() => flattenCategories(allCategories.value).length)
+
+provide('categoryEditor', {
+  highlightID,
+  isOpen: (id) => !!query.value || expanded.has(id),
+  toggle: (id) => (expanded.has(id) ? expanded.delete(id) : expanded.add(id)),
+})
+
+const expandAll = () => flattenCategories(allCategories.value).forEach((c) => expanded.add(c.id))
+const collapseAll = () => expanded.clear()
+
+// Open the tree down to a category, scroll to it and briefly highlight it so the change is easy to spot
+const reveal = async (id) => {
+  if (!id) return
+  findPathIDs(allCategories.value, id)
+    .slice(0, -1)
+    .forEach((ancestor) => expanded.add(ancestor))
+  highlightID.value = id
+  await nextTick()
+  document.getElementById(`category-${id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  setTimeout(() => {
+    if (highlightID.value === id) highlightID.value = null
+  }, 2000)
+}
+
 // Function to refresh categories from the server
 const refreshCategoriesFromServer = async () => {
   try {
     const response = await axios_api.get('/admin/get-all-categories')
-    if (response.status === 200 && response.data) {
-      allCategories.value = response.data
-      await nextTick()
-      return true
-    } else {
-      console.warn('Failed to refresh categories from server:', response.status)
-      return false
-    }
+    allCategories.value = response.data
+    await nextTick()
+    return true
   } catch (error) {
     console.error('Error refreshing categories from server:', error)
     return false
   }
 }
 
-// Function to handle renaming a category
-const renameCategory = (category, id, categoryLevel) => {
-  currentCategory.value = category
-  currentCategoryID.value = id
-  currentCategoryLevel.value = categoryLevel
-
-  modalMessage.value = 'Enter the new category name:'
-  showRenameModal.value = true
-}
-
-// Function to handle creating a new category
-const createCategory = (level, parentID) => {
-  currentCategoryLevel.value = level
-  currentCategoryID.value = parentID || null // If creating a top-level category, parentID will be null
-  modalMessage.value = 'Enter the new category name:'
-  showCreateModal.value = true
-}
-
-// Function to handle deleting a category
-const deleteCategory = (level, id, category, path) => {
-  currentCategory.value = category
-  currentCategoryLevel.value = level
-  currentCategoryID.value = id
-  categoryPath.value = path
-  showDeleteModal.value = true
-}
-
 // Reset the modal state after closing it
 const resetModals = () => {
   currentCategory.value = null
-  currentCategoryID.value = null
-  currentCategoryLevel.value = null
-  categoryPath.value = ''
+  createParent.value = null
+  modalError.value = ''
   showRenameModal.value = false
   showCreateModal.value = false
   showDeleteModal.value = false
+  showMoveModal.value = false
   isLoading.value = false
 }
 
-// Save the new category name to the database
-const confirmUpdate = async (newCategoryName) => {
+// Run a change on the server, then refresh the tree and show the category that changed.
+// When the server refuses (duplicate name, category still has products, ...) its reason is shown in the modal.
+const applyChange = async (request, failureMessage, changedID) => {
   isLoading.value = true
+  modalError.value = ''
 
+  let response
   try {
-    const response = await axios_api.put('/categories/rename', {
-      categoryName: newCategoryName,
-      categoryID: currentCategoryID.value,
-      categoryLevel: currentCategoryLevel.value,
-    })
-
-    if (response.status === 200) {
-      // Immediately refresh categories from server after successful update
-      const refreshSuccess = await refreshCategoriesFromServer()
-
-      if (refreshSuccess) {
-        isLoading.value = false
-        resetModals()
-      } else {
-        console.warn('Category updated but failed to refresh UI')
-        isLoading.value = false
-        alert('Category updated but UI refresh failed. Please refresh the page to see changes.')
-      }
-    } else {
-      console.warn('API call successful, but unexpected status:', response.status)
-      isLoading.value = false
-      alert('Category update failed or no change needed.')
-    }
+    response = await request()
   } catch (err) {
-    console.error('Error updating category name:', err)
+    console.error(failureMessage, err)
     isLoading.value = false
-    alert('Failed to update category name. Please try again. Check console for details.')
+    modalError.value = err.response?.data?.message || `${failureMessage} Please try again.`
+    return
   }
+
+  const refreshSuccess = await refreshCategoriesFromServer()
+  resetModals()
+  if (!refreshSuccess) {
+    alert('The change was saved but the list could not be refreshed. Please refresh the page.')
+    return
+  }
+  reveal(typeof changedID === 'function' ? changedID(response) : changedID)
 }
 
+// Modal openers
+const renameCategory = (node) => {
+  currentCategory.value = node
+  showRenameModal.value = true
+}
+
+const createCategory = (parentNode) => {
+  createParent.value = parentNode
+  showCreateModal.value = true
+}
+
+const deleteCategory = (node) => {
+  currentCategory.value = node
+  showDeleteModal.value = true
+}
+
+const moveCategory = (node, mode) => {
+  currentCategory.value = node
+  moveMode.value = mode
+  showMoveModal.value = true
+}
+
+// The parent a category currently has, null for a top level category
+const currentParentID = (node) => {
+  const path = findPathIDs(allCategories.value, node.id)
+  return path.length > 1 ? path[path.length - 2] : null
+}
+
+// Save the new category name to the database
+const confirmUpdate = (newCategoryName) =>
+  applyChange(
+    () =>
+      axios_api.put('/categories/rename', {
+        categoryName: newCategoryName,
+        categoryID: currentCategory.value.id,
+      }),
+    'Failed to rename the category.',
+    currentCategory.value.id,
+  )
+
 // Save the new category to the database
-const confirmCreate = async (newCategoryName) => {
-  isLoading.value = true
+const confirmCreate = (newCategoryName) =>
+  applyChange(
+    () =>
+      axios_api.post('/categories/create', {
+        categoryName: newCategoryName,
+        parentID: createParent.value ? createParent.value.id : null,
+      }),
+    'Failed to create the category.',
+    (response) => response.data.id,
+  )
 
-  try {
-    const response = await axios_api.post('/categories/create', {
-      categoryName: newCategoryName,
-      categoryLevel: currentCategoryLevel.value,
-      parentId: currentCategoryID.value,
-    })
-
-    if (response.status === 201 && response.data && response.data.id) {
-      // Immediately refresh categories from server after successful creation
-      const refreshSuccess = await refreshCategoriesFromServer()
-
-      if (refreshSuccess) {
-        isLoading.value = false
-        resetModals()
-      } else {
-        console.warn('Category created but failed to refresh UI')
-        isLoading.value = false
-        alert('Category created but UI refresh failed. Please refresh the page to see changes.')
-      }
-    } else {
-      console.warn('Invalid response structure:', response)
-      console.warn('Expected status 201 and response.data.id, but got:', {
-        status: response.status,
-        hasData: !!response.data,
-        hasId: !!(response.data && response.data.id),
-      })
-      isLoading.value = false
-      alert('Failed to create category: Invalid server response. Please try again.')
-    }
-  } catch (err) {
-    console.error('Error creating category:', err)
-    isLoading.value = false
-    alert('Failed to create category. Please try again. Check console for details.')
-  }
+// Move the category (with its subcategories and products), or merge it into another one
+const confirmMove = (targetID) => {
+  const categoryID = currentCategory.value.id
+  return moveMode.value === 'merge'
+    ? applyChange(
+        () => axios_api.put('/categories/merge', { sourceID: categoryID, targetID }),
+        'Failed to merge the categories.',
+        targetID,
+      )
+    : applyChange(
+        () => axios_api.put('/categories/move', { categoryID, newParentID: targetID }),
+        'Failed to move the category.',
+        categoryID,
+      )
 }
 
 // delete the category from the database
-const confirmDelete = async () => {
-  isLoading.value = true
-
-  try {
-    const response = await axios_api.delete('/categories/delete', {
-      data: {
-        categoryLevel: currentCategoryLevel.value,
-        categoryID: currentCategoryID.value,
-      },
-    })
-
-    if (response.status === 200) {
-      // Immediately refresh categories from server after successful deletion
-      const refreshSuccess = await refreshCategoriesFromServer()
-
-      if (refreshSuccess) {
-        isLoading.value = false
-        resetModals()
-      } else {
-        console.warn('Category deleted but failed to refresh UI')
-        isLoading.value = false
-        alert('Category deleted but UI refresh failed. Please refresh the page to see changes.')
-      }
-    } else {
-      console.warn('API call successful, but unexpected status:', response.status)
-      isLoading.value = false
-      alert('Failed to delete category. Please try again.')
-    }
-  } catch (err) {
-    console.error('Error deleting category:', err)
-    isLoading.value = false
-    alert('Failed to delete category. Please try again. Check console for details.')
-  }
-}
+const confirmDelete = () =>
+  applyChange(
+    () => axios_api.delete('/categories/delete', { data: { categoryID: currentCategory.value.id } }),
+    'Failed to delete the category.',
+    null,
+  )
 </script>
 
 <template>
   <div
-    class="mx-auto max-h-[80%] w-[50%] max-w-[50%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 p-4 shadow"
+    class="mx-auto mb-8 w-[95%] max-w-4xl overflow-hidden rounded-xl border border-blue-300 bg-white/95 shadow"
   >
-    <ul
-      class="mb-4 cursor-pointer rounded-lg bg-white text-center font-semibold shadow-md transition-all duration-300 hover:bg-green-600 hover:shadow-black/25"
-    >
-      <li>
-        <button
-          class="flex h-full w-full cursor-pointer items-center justify-center p-4"
-          @click="createCategory(1, null)"
-        >
-          <span class="mr-2">
-            <font-awesome-icon :icon="['fas', 'square-plus']" style="color: black" />
-          </span>
-          <span>Add new top level category</span>
-        </button>
-      </li>
+    <!-- Header -->
+    <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-900">Categories</h1>
+        <p class="text-sm text-gray-500">
+          {{ categoryCount }} categories. Moving or merging a category takes its products with it.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+        @click="createCategory(null)"
+      >
+        <font-awesome-icon :icon="['fas', 'plus']" />
+        New category
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-5 py-3">
+      <label class="relative min-w-[200px] flex-1">
+        <span class="sr-only">Search categories</span>
+        <font-awesome-icon
+          :icon="['fas', 'magnifying-glass']"
+          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400"
+        />
+        <input
+          v-model="search"
+          type="search"
+          placeholder="Search categories"
+          class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pr-3 pl-9 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        />
+      </label>
+      <button
+        type="button"
+        class="cursor-pointer rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none"
+        :disabled="!!query"
+        @click="expandAll"
+      >
+        Expand all
+      </button>
+      <button
+        type="button"
+        class="cursor-pointer rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:shadow-none"
+        :disabled="!!query"
+        @click="collapseAll"
+      >
+        Collapse all
+      </button>
+    </div>
+
+    <!-- Category tree, subcategories can be nested to any depth -->
+    <ul v-if="visibleCategories.length" class="divide-y divide-gray-100 px-3 py-2">
+      <CategoryAdminNode
+        v-for="category in visibleCategories"
+        :key="category.id"
+        :node="category"
+        @add="createCategory"
+        @rename="renameCategory"
+        @move="(node) => moveCategory(node, 'move')"
+        @merge="(node) => moveCategory(node, 'merge')"
+        @delete="deleteCategory"
+      />
     </ul>
-    <!-- Category List -->
-    <ul
-      v-for="category1 in allCategories"
-      :key="category1.id"
-      class="group/category1 mb-4 rounded-lg bg-white p-4 shadow-md"
-    >
-      <li class="rounded-lg">
-        <div class="mb-4 flex items-center">
-          <input class="text-lg font-bold" :value="category1.name" disabled />
-
-          <div
-            class="ml-auto opacity-0 transition-opacity duration-300 ease-in group-hover/category1:opacity-100"
-          >
-            <AddButton text="Add Subcategory" @add="createCategory(2, category1.id)"></AddButton>
-            <EditButton
-              text="Rename"
-              @edit="renameCategory(category1.name, category1.id, 1)"
-              class="ml-1"
-            ></EditButton>
-            <DeleteButton
-              text="Delete"
-              class="ml-1"
-              @delete="deleteCategory(1, category1.id, category1.name)"
-            ></DeleteButton>
-          </div>
-        </div>
-        <!-- Category level 2 List -->
-        <ul
-          v-for="category2 in category1.subcategories"
-          :key="category2.id"
-          class="group/category2 mb-4 rounded-lg bg-blue-100 p-2 shadow-md"
-        >
-          <li>
-            <div class="flex items-center">
-              <span class="font-semibold">{{ category2.name }}</span>
-
-              <div
-                class="ml-auto flex items-center gap-2 opacity-0 transition-opacity duration-300 ease-in group-hover/category2:opacity-100"
-              >
-                <AddButton @add="createCategory(3, category2.id)"></AddButton>
-                <EditButton @edit="renameCategory(category2.name, category2.id, 2)"></EditButton>
-                <DeleteButton
-                  @delete="deleteCategory(2, category2.id, category2.name)"
-                ></DeleteButton>
-              </div>
-            </div>
-
-            <!-- Category level 3 List -->
-            <ul>
-              <li
-                v-for="category3 in category2.subcategories"
-                :key="category3.id"
-                class="group/category3 my-2 rounded-lg bg-white p-2 shadow-md"
-              >
-                <div class="flex items-center">
-                  <p>{{ category3.name }}</p>
-
-                  <div
-                    class="ml-auto flex items-center gap-2 opacity-0 transition-opacity duration-300 ease-in group-hover/category3:opacity-100"
-                  >
-                    <EditButton
-                      @edit="renameCategory(category3.name, category3.id, 3)"
-                    ></EditButton>
-                    <DeleteButton
-                      @delete="deleteCategory(3, category3.id, category3.name)"
-                    ></DeleteButton>
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
+    <p v-else-if="query" class="px-5 py-10 text-center text-sm text-gray-500">
+      No categories match "{{ search.trim() }}".
+    </p>
+    <p v-else class="px-5 py-10 text-center text-sm text-gray-500">
+      There are no categories yet. Use "New category" to add the first one.
+    </p>
   </div>
 
   <!-- Modal for renaming categories -->
   <RenameCategoryModal
     v-if="showRenameModal"
-    :title="currentCategory"
+    :title="`Rename “${currentCategory.name}”`"
+    :initialName="currentCategory.name"
     :isLoading="isLoading"
+    :error="modalError"
     @close="resetModals()"
     @update="(categoryName) => confirmUpdate(categoryName)"
   ></RenameCategoryModal>
@@ -301,21 +290,35 @@ const confirmDelete = async () => {
   <!-- Modal for creating new categories -->
   <CreateCategoryModal
     v-if="showCreateModal"
-    :title="`Create a New Category (Level: ${currentCategoryLevel || ''})`"
+    :title="createParent ? `Add a subcategory to “${createParent.name}”` : 'New top level category'"
     :isLoading="isLoading"
+    :error="modalError"
     @close="resetModals()"
     @create="(categoryName) => confirmCreate(categoryName)"
   ></CreateCategoryModal>
 
+  <!-- Modal for moving a category, or merging it into another -->
+  <MoveCategoryModal
+    v-if="showMoveModal"
+    :mode="moveMode"
+    :category="currentCategory"
+    :categories="allCategories"
+    :initialTarget="moveMode === 'move' ? currentParentID(currentCategory) : null"
+    :isLoading="isLoading"
+    :error="modalError"
+    @close="resetModals()"
+    @confirm="(targetID) => confirmMove(targetID)"
+  ></MoveCategoryModal>
+
   <!-- Modal for deleting a category -->
   <DeleteCategoryModal
     v-if="showDeleteModal"
-    :title="currentCategory"
+    :category="currentCategory"
     :isLoading="isLoading"
+    :error="modalError"
     @close="resetModals()"
     @delete="confirmDelete()"
   ></DeleteCategoryModal>
 </template>
 
 <style scoped></style>
-

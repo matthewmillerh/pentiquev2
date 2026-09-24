@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ContactView from '@/views/ContactView.vue'
 import ShippingView from '@/views/ShippingView.vue'
 import ProductsView from '@/views/ProductsView.vue'
+import LegacyCategoryRedirect from '@/views/LegacyCategoryRedirect.vue'
 import ProductView from '@/views/ProductView.vue'
 import ShoppingCart from '@/views/ShoppingCart.vue'
 import CheckoutView from '@/views/CheckoutView.vue'
@@ -47,14 +48,25 @@ const router = createRouter({
           component: ShippingView,
         },
         {
-          path: '/products/:category/:category1ID/:category2?/:category3?',
-          name: 'products',
+          path: '/category/:categoryID(\\d+)/:categoryName?',
+          name: 'category',
           component: ProductsView,
         },
         {
-          path: '/product/:productID/:category1ID',
+          // links from before categories could be nested to any depth
+          path: '/products/:category/:category1ID/:category2?/:category3?',
+          name: 'legacy-category',
+          component: LegacyCategoryRedirect,
+        },
+        {
+          path: '/product/:productID/:categoryID?',
           name: 'product',
           component: ProductView,
+        },
+        {
+          path: '/search',
+          name: 'search',
+          component: () => import('@/views/SearchView.vue'),
         },
         {
           path: '/shopping-cart',
@@ -96,7 +108,7 @@ const router = createRouter({
           component: EditCategoriesView,
         },
         {
-          path: '/admin/edit-products/:category?/:category1ID?/:category2?/:category3?',
+          path: '/admin/edit-products/:categoryID(\\d+)?/:categoryName?',
           name: 'edit-products',
           component: EditProductsView,
         },

@@ -14,10 +14,16 @@ axios_api.interceptors.request.use(
       '/categories/rename',
       '/categories/create',
       '/categories/delete',
+      '/categories/move',
+      '/categories/merge',
       '/products/edit',
       '/products/add',
       '/products/delete',
+      '/products/move',
+      '/products/bulk-update',
+      '/products/bulk-delete',
       '/admin/get-all-categories',
+      '/admin/export/catalogue',
     ]
 
     // Check if the current request URL matches any protected route

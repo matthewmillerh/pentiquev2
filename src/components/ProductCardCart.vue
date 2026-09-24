@@ -59,7 +59,7 @@ function validateQuantity() {
 
 <template>
   <div class="mb-4 inline-flex">
-    <RouterLink :to="'/product/' + product.productID + '/' + product.category1ID">
+    <RouterLink :to="'/product/' + product.productID + '/' + (product.categoryID ?? '')">
       <div
         class="inline-flex w-48 max-w-52 flex-col items-center rounded-lg border border-blue-300 bg-blue-200 p-2 shadow"
       >

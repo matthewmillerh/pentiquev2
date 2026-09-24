@@ -1,2 +1,25 @@
 @import './base.css';
 @import 'tailwindcss';
+
+/* Thin, see-through scrollbar for the side menus: no track, a soft translucent handle that firms up on hover */
+.soft-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(30 41 59 / 0.22) transparent;
+}
+.soft-scrollbar:hover {
+  scrollbar-color: rgb(30 41 59 / 0.38) transparent;
+}
+/* Browsers without scrollbar-color (older Safari) */
+.soft-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.soft-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.soft-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(30 41 59 / 0.22);
+  border-radius: 9999px;
+}
+.soft-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(30 41 59 / 0.38);
+}
