@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 import Close from 'vue-material-design-icons/Close.vue'
 import MainNavItem from './shared/buttons/MainNavItem.vue'
+import StoreSearchBox from './StoreSearchBox.vue'
 import { useRoute } from 'vue-router'
 
 const cartItemCount = ref(0)
@@ -59,79 +60,109 @@ function closeMenuOnNav() {
 }
 </script>
 <template>
+  <!-- On big screens the header floats: content scrolling up behind it softly blurs and fades, with no hard edge -->
   <div
-    class="fixed top-0 right-0 left-0 hidden h-32 bg-white/30 backdrop-blur-md lg:block"
+    class="header-veil pointer-events-none fixed inset-x-0 top-0 hidden h-36 lg:block"
     style="z-index: 40"
   ></div>
   <div>
     <div
-      class="fixed top-0 right-0 left-0 z-50 flex flex-wrap items-center justify-center gap-x-4 border border-blue-400 bg-blue-200/60 p-3 shadow-md shadow-black/10 lg:top-5 lg:right-6 lg:left-6 lg:rounded-lg"
+      class="fixed top-0 right-0 left-0 z-50 border-b border-blue-200/80 bg-blue-100/70 p-3 shadow-lg shadow-blue-900/5 backdrop-blur-xl lg:top-5 lg:right-6 lg:left-6 lg:rounded-2xl lg:border lg:bg-blue-100/60"
     >
-      <!-- Company logo -->
-      <img
-        alt="Pentique logo"
-        src="/images/logo.png"
-        width="100"
-        class="drop-shadow-md drop-shadow-blue-400"
-      />
+      <div class="flex items-center gap-x-4">
+        <!-- Company logo -->
+        <RouterLink to="/" class="shrink-0" @click="closeMenuOnNav">
+          <img
+            alt="Pentique logo"
+            src="/images/logo.png"
+            width="100"
+            class="drop-shadow-md drop-shadow-blue-400"
+          />
+        </RouterLink>
 
-      <!-- Main menu items -->
-      <nav class="hidden gap-2 p-2 lg:flex">
-        <MainNavItem :icon="['fas', 'house']" label="Home" link="/" @click="closeMenuOnNav" />
+        <!-- Main menu items -->
+        <nav class="hidden gap-1 p-1 lg:flex">
+          <MainNavItem :icon="['fas', 'house']" label="Home" link="/" @click="closeMenuOnNav" />
 
-        <MainNavItem
-          :icon="['fas', 'circle-info']"
-          label="About"
-          link="/about"
-          @click="closeMenuOnNav"
-        />
+          <MainNavItem
+            :icon="['fas', 'circle-info']"
+            label="About"
+            link="/about"
+            @click="closeMenuOnNav"
+          />
 
-        <MainNavItem
-          :icon="['fas', 'address-book']"
-          label="Contact"
-          link="/contact"
-          @click="closeMenuOnNav"
-        />
+          <MainNavItem
+            :icon="['fas', 'address-book']"
+            label="Contact"
+            link="/contact"
+            @click="closeMenuOnNav"
+          />
 
-        <MainNavItem
-          :icon="['fas', 'truck-fast']"
-          label="Shipping"
-          link="/shipping"
-          @click="closeMenuOnNav"
-        />
-        <MainNavItem
-          :icon="['fas', 'cart-shopping']"
-          label="Cart"
-          link="/shopping-cart"
-          :cart-count="cartItemCount"
-          @click="closeMenuOnNav"
-        />
-      </nav>
-      <!-- Mobile menu icons -->
-      <div class="absolute top-6 right-12 z-50 block lg:hidden">
-        <Transition name="mobileMenuButton" mode="out-in">
-          <button
-            v-if="!props.showMobileMenu"
-            @click="toggleMobileMenu()"
-            class="cursor-pointer"
-            :key="`menu-${props.showMobileMenu}`"
-          >
-            <menu-icon />
-          </button>
-          <button
-            v-else
-            @click="toggleMobileMenu()"
-            class="cursor-pointer"
-            :key="`close-${props.showMobileMenu}`"
-          >
-            <close />
-          </button>
-        </Transition>
+          <MainNavItem
+            :icon="['fas', 'truck-fast']"
+            label="Shipping"
+            link="/shipping"
+            @click="closeMenuOnNav"
+          />
+          <MainNavItem
+            :icon="['fas', 'cart-shopping']"
+            label="Cart"
+            link="/shopping-cart"
+            :cart-count="cartItemCount"
+            @click="closeMenuOnNav"
+          />
+        </nav>
+
+        <!-- Search, on the right on big screens -->
+        <div class="ml-auto hidden w-56 lg:block xl:w-80">
+          <StoreSearchBox input-id="store-search-desktop" />
+        </div>
+
+        <!-- Mobile menu icons -->
+        <div class="z-50 ml-auto flex items-center pr-2 lg:hidden">
+          <Transition name="mobileMenuButton" mode="out-in">
+            <button
+              v-if="!props.showMobileMenu"
+              @click="toggleMobileMenu()"
+              class="cursor-pointer"
+              :key="`menu-${props.showMobileMenu}`"
+            >
+              <menu-icon />
+            </button>
+            <button
+              v-else
+              @click="toggleMobileMenu()"
+              class="cursor-pointer"
+              :key="`close-${props.showMobileMenu}`"
+            >
+              <close />
+            </button>
+          </Transition>
+        </div>
+      </div>
+
+      <!-- Search on phones and tablets: its own row under the logo, always visible -->
+      <div class="mt-2 lg:hidden">
+        <StoreSearchBox input-id="store-search-mobile" />
       </div>
     </div>
   </div>
 </template>
 <style scoped>
+/* A blur and a tint of the page colour that both fade out towards the bottom */
+.header-veil {
+  background: linear-gradient(
+    to bottom,
+    rgb(246 242 247 / 0.75),
+    rgb(246 242 247 / 0.4) 55%,
+    transparent
+  );
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent);
+  mask-image: linear-gradient(to bottom, black 50%, transparent);
+}
+
 .mobileMenuButton-enter-active,
 .mobileMenuButton-leave-active {
   transition: opacity 0.5s ease-in-out;

@@ -27,6 +27,18 @@ import {
   faAddressBook,
   faTruckFast,
   faCartShopping,
+  faPlus,
+  faPen,
+  faUpDownLeftRight,
+  faCodeMerge,
+  faTrashCan,
+  faChevronRight,
+  faChevronLeft,
+  faMagnifyingGlass,
+  faEye,
+  faEyeSlash,
+  faGrip,
+  faList,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithub,
@@ -67,6 +79,18 @@ library.add(
   faAddressBook,
   faTruckFast,
   faCartShopping,
+  faPlus,
+  faPen,
+  faUpDownLeftRight,
+  faCodeMerge,
+  faTrashCan,
+  faChevronRight,
+  faChevronLeft,
+  faMagnifyingGlass,
+  faEye,
+  faEyeSlash,
+  faGrip,
+  faList,
 )
 
 import App from './App.vue'

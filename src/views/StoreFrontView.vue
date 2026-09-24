@@ -5,7 +5,6 @@ import ProductMenuMain from '@/components/shared/ProductMenuMain.vue'
 import ProductMenuMobile from '@/components/ProductMenuMobile.vue'
 import MainNavMenu from '@/components/MainNavMenu.vue'
 
-const cartItemCount = ref(0)
 const showMobileMenu = ref(false)
 
 function toggleMobileMenu() {
@@ -19,7 +18,6 @@ function toggleMobileMenu() {
     <Transition name="mobile-nav-menu">
       <ProductMenuMobile
         v-if="showMobileMenu"
-        :cart-item-count="cartItemCount"
         @close-mobile-menu="showMobileMenu = false"
       ></ProductMenuMobile>
     </Transition>
@@ -34,9 +32,11 @@ function toggleMobileMenu() {
   </header>
 
   <!-- Main content -->
-  <div class="mt-20 lg:mt-28">
+  <!-- On phones the header is taller, it has the search box on a second row -->
+  <div class="mt-26 lg:mt-28">
+    <!-- The side menu and the main section share the header's glass look -->
     <div
-      class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 shadow lg:block"
+      class="soft-scrollbar fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-2xl border border-blue-200/80 bg-blue-50/45 shadow-lg shadow-blue-900/5 backdrop-blur-xl lg:block"
       style="z-index: 20"
     >
       <!-- Product side menu -->
@@ -45,7 +45,7 @@ function toggleMobileMenu() {
 
     <!-- Main router view content -->
     <div
-      class="float-right mb-4 w-full rounded-lg border border-blue-300 bg-blue-100/30 pt-4 pb-8 shadow backdrop-blur-md lg:w-[80%] lg:max-w-[80%]"
+      class="float-right mb-4 w-full rounded-2xl border border-blue-200/80 bg-blue-50/45 pt-4 pb-8 shadow-lg shadow-blue-900/5 backdrop-blur-xl lg:w-[80%] lg:max-w-[80%]"
       style="position: relative; z-index: 10"
     >
       <router-view v-slot="{ Component }">
@@ -56,48 +56,17 @@ function toggleMobileMenu() {
 </template>
 
 <style scoped>
-@media screen and (min-width: 640px) {
-  .router-link-active {
-    color: black;
-    font-weight: 600;
-  }
-}
-
-.category-item:hover {
-  background-color: rgba(138, 172, 233, 0.659);
-  cursor: pointer;
-}
-
-/* Scrollbar width */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-/* Scrollbar Track */
-::-webkit-scrollbar-track {
-  background: rgb(179, 179, 243);
-  border-radius: 8px;
-}
-
-/* Scrollbar Handle */
-::-webkit-scrollbar-thumb {
-  background: rgb(157, 157, 235);
-  border-radius: 5px;
-}
-
-/* Scrollbar Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(130, 130, 249);
-}
-
+/* The mobile menu fades in and drops down slightly from under the header */
 .mobile-nav-menu-enter-active,
 .mobile-nav-menu-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .mobile-nav-menu-enter-from,
 .mobile-nav-menu-leave-to {
-  transform: translateY(500px);
+  transform: translateY(-8px);
   opacity: 0;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onMounted, ref, onBeforeUnmount } from 'vue'
+import { computed, nextTick, onMounted, ref, onBeforeUnmount } from 'vue'
 import ModalWrapper from '../shared/ModalWrapper.vue'
 import CancelButton from '../shared/buttons/CancelButton.vue'
 import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
@@ -7,6 +7,8 @@ import EditProductImage from '@/components/admin/images/EditProductImage.vue'
 import { useProductImages } from '@/composables/useProductImages'
 import DeleteButton from '@/components/shared/buttons/DeleteButton.vue'
 import LoadingSpinner from './ui/LoadingSpinner.vue'
+import CategoryCascadeSelect from '@/components/shared/CategoryCascadeSelect.vue'
+import { axios_api } from '@/scripts/global'
 
 const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'
 const NO_IMAGE_URL = `${API_BASE_URL}/images/no-image.png`
@@ -28,13 +30,25 @@ const props = defineProps({
   },
 })
 
+const categoryTree = ref([]) // all categories, for choosing which category the product belongs to
+
+// The look of the text, number and description fields
+const fieldClass =
+  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+
 const productDetailsCopy = ref({ ...props.productDetails }) // This will hold the product details passed from the parent component
 
 //get image URLs and handle image errors using the composable
 const { primaryImage, secondaryImage, tertiaryImage, quaternaryImage, handleImageError } =
   useProductImages(productDetailsCopy)
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    categoryTree.value = (await axios_api.get('/admin/get-all-categories')).data
+  } catch (error) {
+    console.error('Error loading categories:', error)
+  }
+
   // Set focus on the input field for the new category name
   nextTick(() => {
     if (categoryInput.value) {
@@ -71,9 +85,16 @@ const displayedImage = (idx) => {
   }
 }
 
+// Stock must be a whole number, 0 or more (0 is out of stock)
+const stockIsValid = computed(() => {
+  const stock = productDetailsCopy.value.productStock
+  return stock !== '' && stock !== null && Number.isInteger(Number(stock)) && Number(stock) >= 0
+})
+
 // Triggers the create function in the parent component and then closes the modal
 const confirm = () => {
   if (props.isUpdating) return // Prevent multiple submissions
+  if (!stockIsValid.value) return
   emit('update', productDetailsCopy.value, newImageFiles.value)
   // Don't close the wrapper immediately - let the parent handle it after successful update
 }
@@ -147,11 +168,29 @@ onBeforeUnmount(() => {
 })
 </script>
 <template>
-  <ModalWrapper @close="unMount" ref="modalWrapper">
-    <!-- Loading overlay -->
+  <ModalWrapper fullscreen @close="unMount" ref="modalWrapper">
+    <template #header>
+      <div class="min-w-0 flex-1">
+        <p class="text-xs font-medium tracking-wide text-gray-500 uppercase">Edit product</p>
+        <h2 class="truncate text-lg font-semibold text-gray-900">
+          {{ productDetailsCopy.productName || 'Untitled product' }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-default disabled:opacity-40"
+        aria-label="Close without saving"
+        :disabled="isUpdating"
+        @click="closeWrapper()"
+      >
+        ✕
+      </button>
+    </template>
+
+    <!-- Saving: covers the whole modal so nothing can be changed meanwhile -->
     <div
       v-if="isUpdating"
-      class="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-black/50"
+      class="fixed inset-0 z-[80] flex items-center justify-center bg-black/40"
     >
       <div class="rounded-lg bg-white p-6 text-center shadow-lg">
         <LoadingSpinner text="Updating product..." />
@@ -159,139 +198,176 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <input
-      type="text"
-      class="w-full rounded-lg bg-neutral-100 px-2 py-1 text-center font-semibold shadow-sm focus:shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-      v-model="productDetailsCopy.productName"
-    />
-    <input
-      type="text"
-      class="w-full rounded-lg bg-neutral-100 px-2 py-1 text-center font-semibold shadow-sm focus:shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-      v-model="productDetailsCopy.productCode"
-    />
-    <EditProductImage
-      :image-url="displayedImage(0)"
-      :image-index="0"
-      @change="onImageChange"
-      @error="handleImageError"
-    ></EditProductImage>
-    <div class="mt-2 grid max-h-48 w-full grid-cols-3 grid-rows-1 gap-2 rounded-lg">
-      <div class="flex w-full justify-center rounded-lg">
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
+      <!-- Images -->
+      <section aria-label="Images" class="flex flex-col gap-3">
         <EditProductImage
-          :image-url="displayedImage(1)"
-          :image-index="1"
+          :image-url="displayedImage(0)"
+          :image-index="0"
           @change="onImageChange"
           @error="handleImageError"
-          @delete="onImageDelete"
         ></EditProductImage>
-      </div>
-      <div class="flex w-full justify-center rounded-lg">
-        <EditProductImage
-          :image-url="displayedImage(2)"
-          :image-index="2"
-          @change="onImageChange"
-          @error="handleImageError"
-          @delete="onImageDelete"
-        ></EditProductImage>
-      </div>
-      <div class="flex w-full justify-center rounded-lg">
-        <EditProductImage
-          :image-url="displayedImage(3)"
-          :image-index="3"
-          @change="onImageChange"
-          @error="handleImageError"
-          @delete="onImageDelete"
-        ></EditProductImage>
-      </div>
+        <div class="grid grid-cols-3 gap-3">
+          <EditProductImage
+            v-for="index in [1, 2, 3]"
+            :key="index"
+            :image-url="displayedImage(index)"
+            :image-index="index"
+            @change="onImageChange"
+            @error="handleImageError"
+            @delete="onImageDelete"
+          ></EditProductImage>
+        </div>
+        <p class="text-center text-xs text-gray-500">Click an image to replace it.</p>
+      </section>
+
+      <!-- Details -->
+      <section aria-label="Details" class="flex flex-col gap-4 text-sm">
+        <div>
+          <label for="edit-product-name" class="mb-1 block font-medium text-gray-700">Name</label>
+          <input
+            id="edit-product-name"
+            type="text"
+            :class="fieldClass"
+            v-model="productDetailsCopy.productName"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="edit-product-code" class="mb-1 block font-medium text-gray-700">Code</label>
+            <input
+              id="edit-product-code"
+              type="text"
+              maxlength="11"
+              :class="fieldClass"
+              v-model="productDetailsCopy.productCode"
+            />
+            <p class="mt-1 text-xs text-gray-500">Up to 11 characters.</p>
+          </div>
+          <div>
+            <label for="product-stock" class="mb-1 block font-medium text-gray-700">Stock</label>
+            <input
+              id="product-stock"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              name="product-stock"
+              :class="fieldClass"
+              v-model="productDetailsCopy.productStock"
+            />
+            <p v-if="!stockIsValid" class="mt-1 text-xs text-red-600">
+              Enter a whole number, 0 or more.
+            </p>
+            <p v-else class="mt-1 text-xs text-gray-500">
+              {{
+                Number(productDetailsCopy.productStock) > 0 ? 'In stock' : 'Shown as out of stock'
+              }}
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="edit-product-price" class="mb-1 block font-medium text-gray-700">
+              Price (R)
+            </label>
+            <input
+              id="edit-product-price"
+              type="number"
+              min="0"
+              step="0.01"
+              name="product-price"
+              :class="fieldClass"
+              v-model="productDetailsCopy.productPrice"
+            />
+          </div>
+          <div>
+            <label for="edit-product-special-price" class="mb-1 block font-medium text-gray-700">
+              Special price (R)
+            </label>
+            <input
+              id="edit-product-special-price"
+              type="number"
+              min="0"
+              step="0.01"
+              name="product-special-price"
+              :class="fieldClass"
+              v-model="productDetailsCopy.productSpecialPrice"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p class="mb-1 font-medium text-gray-700">Category</p>
+          <CategoryCascadeSelect
+            v-model="productDetailsCopy.categoryID"
+            :categories="categoryTree"
+          />
+        </div>
+
+        <fieldset class="flex flex-wrap gap-x-6 gap-y-2">
+          <legend class="sr-only">Options</legend>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              name="product-special"
+              class="h-4 w-4 accent-blue-600"
+              v-model="productDetailsCopy.productSpecial"
+              :true-value="1"
+              :false-value="0"
+            />
+            On special
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              name="product-featured"
+              class="h-4 w-4 accent-blue-600"
+              v-model="productDetailsCopy.productFeatured"
+              :true-value="1"
+              :false-value="0"
+            />
+            Featured category image
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              name="product-hidden"
+              class="h-4 w-4 accent-blue-600"
+              v-model="productDetailsCopy.productHidden"
+              :true-value="1"
+              :false-value="0"
+            />
+            Hide from customers
+          </label>
+        </fieldset>
+
+        <div>
+          <label for="edit-product-description" class="mb-1 block font-medium text-gray-700">
+            Description
+          </label>
+          <textarea
+            id="edit-product-description"
+            rows="8"
+            :class="[fieldClass, 'min-h-40 resize-y']"
+            v-model="productDetailsCopy.productDescription"
+          ></textarea>
+        </div>
+      </section>
     </div>
 
-    <p class="w-full min-w-[350px] text-start text-sm font-semibold">Product Description:</p>
-    <textarea
-      v-model="productDetailsCopy.productDescription"
-      class="h-44 max-h-72 w-full rounded-md bg-neutral-100 p-1 text-sm shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-    ></textarea>
-    <div class="grid w-full grid-cols-2 justify-start gap-2">
-      <div class="">
-        <p class="text-sm font-semibold">Hide Product?</p>
-      </div>
-      <div>
-        <input
-          type="checkbox"
-          name="product-hidden"
-          v-model="productDetailsCopy.productHidden"
-          :true-value="1"
-          :false-value="0"
-        />
-      </div>
-      <div><p class="text-sm font-semibold">Price:</p></div>
-      <div class="text-sm">
-        <span>R&nbsp;</span>
-        <input
-          type="number"
-          name="product-price"
-          class="rounded-md bg-neutral-100 px-1 shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          v-model="productDetailsCopy.productPrice"
-          arrows="false"
-        />
-      </div>
-      <div>
-        <p class="text-sm font-semibold">On Special?</p>
-      </div>
-      <div>
-        <input
-          type="checkbox"
-          name="product-special"
-          v-model="productDetailsCopy.productSpecial"
-          :true-value="1"
-          :false-value="0"
-        />
-      </div>
-      <div><p class="text-sm font-semibold">Special Price:</p></div>
-      <div class="text-sm">
-        <span>R&nbsp;</span>
-        <input
-          type="number"
-          name="product-special-price"
-          class="rounded-md bg-neutral-100 px-1 shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          v-model="productDetailsCopy.productSpecialPrice"
-          arrows="false"
-        />
-      </div>
-      <div><p class="text-sm font-semibold">Featured Category Image:</p></div>
-      <div>
-        <input
-          type="checkbox"
-          name="product-featured"
-          v-model="productDetailsCopy.productFeatured"
-          :true-value="1"
-          :false-value="0"
-        />
-      </div>
-    </div>
-    <select
-      name="product-stock-status"
-      class="rounded-md bg-neutral-100 px-1 py-0.5 text-sm shadow-md focus:ring-1 focus:ring-blue-500 focus:outline-none"
-      v-model="productDetailsCopy.productStockStatus"
-    >
-      <option value="In Stock" :selected="productDetailsCopy.productStockStatus === 'In Stock'">
-        In Stock
-      </option>
-      <option
-        value="Out of Stock"
-        :selected="productDetailsCopy.productStockStatus === 'Out of Stock'"
-      >
-        Out of Stock
-      </option>
-    </select>
-
-    <div class="mt-2 flex gap-2">
+    <template #footer>
       <DeleteButton text="Delete Product" @delete="deleteProduct"></DeleteButton>
-      <CancelButton @close="closeWrapper()" :disabled="isUpdating"></CancelButton>
-      <ConfirmButton @confirm="confirm()" :disabled="isUpdating">
-        <span v-if="isUpdating">Updating...</span>
-        <span v-else>Update Product</span>
-      </ConfirmButton>
-    </div>
+      <div class="ml-auto flex gap-2">
+        <CancelButton @close="closeWrapper()" :disabled="isUpdating"></CancelButton>
+        <ConfirmButton @confirm="confirm()" :disabled="isUpdating">
+          <span v-if="isUpdating">Updating...</span>
+          <span v-else>Update Product</span>
+        </ConfirmButton>
+      </div>
+    </template>
   </ModalWrapper>
 </template>
 <style scoped>

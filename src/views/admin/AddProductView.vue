@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, computed, useTemplateRef } from 'vue'
+import { ref, onMounted, useTemplateRef } from 'vue'
 import { axios_api } from '@/scripts/global'
 import LoadingSpinner from '@/components/admin/ui/LoadingSpinner.vue'
 import ModalWrapper from '@/components/shared/ModalWrapper.vue'
+import CategoryCascadeSelect from '@/components/shared/CategoryCascadeSelect.vue'
 
 // Loading states
 const isLoading = ref(false)
@@ -18,13 +19,11 @@ const productData = ref({
   productPrice: '',
   productSpecialPrice: '',
   productDescription: '',
-  productStockStatus: 'In Stock',
+  productStock: '',
   productHidden: false,
   productSpecial: false,
   productFeatured: false,
-  category1ID: '',
-  category2ID: '',
-  category3ID: '',
+  categoryID: null,
   productPosition1: '',
   productPosition2: '',
   productPosition3: '',
@@ -48,19 +47,6 @@ const imageInput3 = useTemplateRef('imageInput3')
 
 // Form validation
 const formErrors = ref({})
-
-// Computed properties for dependent category options
-const category2Options = computed(() => {
-  if (!productData.value.category1ID) return []
-  const category1 = allCategories.value.find((cat) => cat.id == productData.value.category1ID)
-  return category1?.subcategories || []
-})
-
-const category3Options = computed(() => {
-  if (!productData.value.category2ID) return []
-  const category2 = category2Options.value.find((cat) => cat.id == productData.value.category2ID)
-  return category2?.subcategories || []
-})
 
 onMounted(async () => {
   await loadCategories()
@@ -133,8 +119,14 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (!productData.value.category1ID) {
-    formErrors.value.category1ID = 'Main category is required'
+  const stock = productData.value.productStock
+  if (stock === '' || stock === null || !Number.isInteger(Number(stock)) || Number(stock) < 0) {
+    formErrors.value.productStock = 'Enter how many are in stock (0 if out of stock)'
+    isValid = false
+  }
+
+  if (!productData.value.categoryID) {
+    formErrors.value.categoryID = 'Category is required'
     isValid = false
   }
 
@@ -144,16 +136,6 @@ const validateForm = () => {
   }
 
   return isValid
-}
-
-// Reset category dependencies when parent category changes
-const onCategory1Change = () => {
-  productData.value.category2ID = ''
-  productData.value.category3ID = ''
-}
-
-const onCategory2Change = () => {
-  productData.value.category3ID = ''
 }
 
 // Show modal with message
@@ -177,13 +159,11 @@ const closeModal = () => {
       productPrice: '',
       productSpecialPrice: '',
       productDescription: '',
-      productStockStatus: 'In Stock',
+      productStock: '',
       productHidden: false,
       productSpecial: false,
       productFeatured: false,
-      category1ID: '',
-      category2ID: '',
-      category3ID: '',
+      categoryID: null,
       productPosition1: '',
       productPosition2: '',
       productPosition3: '',
@@ -231,13 +211,11 @@ const saveProduct = async () => {
         ? parseFloat(productData.value.productSpecialPrice)
         : 0,
       productDescription: productData.value.productDescription,
-      productStockStatus: productData.value.productStockStatus,
+      productStock: Number(productData.value.productStock),
       productHidden: productData.value.productHidden,
       productSpecial: productData.value.productSpecial,
       productFeatured: productData.value.productFeatured,
-      category1ID: productData.value.category1ID,
-      category2ID: productData.value.category2ID || '',
-      category3ID: productData.value.category3ID || '',
+      categoryID: productData.value.categoryID,
       productPosition1: productData.value.productPosition1
         ? parseInt(productData.value.productPosition1)
         : 0,
@@ -306,13 +284,11 @@ const clearForm = () => {
       productPrice: '',
       productSpecialPrice: '',
       productDescription: '',
-      productStockStatus: 'In Stock',
+      productStock: '',
       productHidden: false,
       productSpecial: false,
       productFeatured: false,
-      category1ID: '',
-      category2ID: '',
-      category3ID: '',
+      categoryID: null,
       productPosition1: '',
       productPosition2: '',
       productPosition3: '',
@@ -531,12 +507,14 @@ const clearForm = () => {
                   v-model="productData.productCode"
                   type="text"
                   required
+                  maxlength="11"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                   placeholder="Enter product code"
                 />
                 <div v-if="formErrors.productCode" class="mt-1 text-sm text-red-600">
                   {{ formErrors.productCode }}
                 </div>
+                <p v-else class="mt-1 text-xs text-gray-500">Up to 11 characters.</p>
               </div>
 
               <!-- Product Price -->
@@ -571,17 +549,22 @@ const clearForm = () => {
                 />
               </div>
 
-              <!-- Stock Status -->
+              <!-- Stock count, 0 means out of stock -->
               <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Stock Status</label>
-                <select
-                  v-model="productData.productStockStatus"
-                  class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="In Stock">In Stock</option>
-                  <option value="Out of Stock">Out of Stock</option>
-                  <option value="Limited Stock">Limited Stock</option>
-                </select>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Stock *</label>
+                <input
+                  v-model="productData.productStock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  placeholder="How many are in stock"
+                />
+                <p v-if="formErrors.productStock" class="mt-1 text-sm text-red-600">
+                  {{ formErrors.productStock }}
+                </p>
+                <p v-else class="mt-1 text-xs text-gray-500">0 shows the product as out of stock.</p>
               </div>
 
               <!-- Product Description -->
@@ -603,63 +586,15 @@ const clearForm = () => {
           <div class="border-b border-gray-200 pb-6">
             <h2 class="mb-4 text-xl font-semibold">Categories</h2>
 
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <!-- Main Category -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Main Category *</label>
-                <select
-                  v-model="productData.category1ID"
-                  @change="onCategory1Change"
-                  required
-                  class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="">Select main category</option>
-                  <option v-for="category in allCategories" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-                <div v-if="formErrors.category1ID" class="mt-1 text-sm text-red-600">
-                  {{ formErrors.category1ID }}
-                </div>
-              </div>
-
-              <!-- Sub Category -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Sub Category</label>
-                <select
-                  v-model="productData.category2ID"
-                  @change="onCategory2Change"
-                  :disabled="!productData.category1ID || category2Options.length === 0"
-                  class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
-                >
-                  <option value="">Select sub category</option>
-                  <option
-                    v-for="category in category2Options"
-                    :key="category.id"
-                    :value="category.id"
-                  >
-                    {{ category.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Sub-Sub Category -->
-              <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Sub-Sub Category</label>
-                <select
-                  v-model="productData.category3ID"
-                  :disabled="!productData.category2ID || category3Options.length === 0"
-                  class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
-                >
-                  <option value="">Select sub-sub category</option>
-                  <option
-                    v-for="category in category3Options"
-                    :key="category.id"
-                    :value="category.id"
-                  >
-                    {{ category.name }}
-                  </option>
-                </select>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700">Category *</label>
+              <CategoryCascadeSelect
+                v-model="productData.categoryID"
+                :categories="allCategories"
+                placeholder="Select a category"
+              />
+              <div v-if="formErrors.categoryID" class="mt-1 text-sm text-red-600">
+                {{ formErrors.categoryID }}
               </div>
             </div>
           </div>

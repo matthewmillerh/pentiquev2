@@ -5,7 +5,6 @@ import CancelButton from '../shared/buttons/CancelButton.vue'
 import ConfirmButton from '../shared/buttons/ConfirmButton.vue'
 import LoadingSpinner from './ui/LoadingSpinner.vue'
 
-const categoryName = ref('')
 const categoryInput = ref(null)
 const showError = ref(false) // used to show an error message when the input field is empty
 const modalWrapper = ref(null)
@@ -14,17 +13,22 @@ const emit = defineEmits(['update', 'close'])
 
 const props = defineProps({
   title: String,
+  initialName: { type: String, default: '' },
   isLoading: {
     type: Boolean,
     default: false,
   },
+  error: { type: String, default: '' },
 })
+
+const categoryName = ref(props.initialName)
 
 onMounted(() => {
   // Set focus on the input field for the new category name
   nextTick(() => {
     if (categoryInput.value) {
       categoryInput.value.focus()
+      categoryInput.value.select()
     }
   })
 })
@@ -75,6 +79,8 @@ const unMount = () => {
     <div v-if="showError" class="text-sm">
       <span class="text-red-500">This field cannot be empty.</span>
     </div>
+
+    <p v-if="error" class="max-w-md text-center text-sm text-red-600">{{ error }}</p>
 
     <!-- Loading Spinner -->
     <div v-if="isLoading" class="py-2">

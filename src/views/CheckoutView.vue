@@ -36,9 +36,9 @@ async function getProductByID(id, qty) {
 
       //remove unnecessary info
       delete productInfo.productFileName
-      delete productInfo.category1ID
-      delete productInfo.category2ID
-      delete productInfo.category3ID
+      delete productInfo.categoryID
+      delete productInfo.categoryName
+      delete productInfo.categoryPath
       delete productInfo.productFeatured
       delete productInfo.productSpecial
       delete productInfo.productDescription
@@ -46,9 +46,6 @@ async function getProductByID(id, qty) {
       delete productInfo.productPosition2
       delete productInfo.productPosition3
       delete productInfo.productHidden
-      delete productInfo.category1Name
-      delete productInfo.category2Name
-      delete productInfo.category3Name
 
       products.value.push(productInfo)
     } catch (err) {

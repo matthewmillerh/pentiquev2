@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Spreadsheet with a download arrow">
+  <rect width="640" height="640" fill="#f0f0f0"/>
+  <g fill="none" stroke="#0f1a2a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the sheet, with a folded corner -->
+    <path d="M190 140 H370 L440 210 V330"/>
+    <path d="M370 140 V210 H440"/>
+    <path d="M190 140 V500 H340"/>
+    <!-- a small table on it -->
+    <rect x="235" y="255" width="160" height="150" rx="6"/>
+    <path d="M235 305 H395 M235 355 H395 M295 255 V405"/>
+    <!-- download arrow -->
+    <path d="M440 380 V520 M390 470 L440 520 L490 470"/>
+  </g>
+</svg>

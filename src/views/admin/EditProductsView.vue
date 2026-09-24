@@ -9,21 +9,21 @@ const currentCategory = ref(null)
 const route = useRoute()
 
 onMounted(() => {
-  currentCategory.value = route.params.category
+  currentCategory.value = route.params.categoryID
 })
 
 //Change which category products are shown when the route params change
 watch(
-  () => route.params.category,
+  () => route.params.categoryID,
   () => {
-    currentCategory.value = route.params.category
+    currentCategory.value = route.params.categoryID
   },
 )
 </script>
 <template>
   <div class="mt-28">
     <div
-      class="fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 shadow sm:block"
+      class="soft-scrollbar fixed hidden max-h-[80%] w-[17%] max-w-[17%] overflow-x-hidden overflow-y-auto rounded-lg border border-blue-300 bg-blue-200 shadow sm:block"
     >
       <!-- Product side menu -->
       <ProductMenuMain></ProductMenuMain>
