@@ -117,6 +117,11 @@ const router = createRouter({
           name: 'add-product',
           component: () => import('@/views/admin/AddProductView.vue'),
         },
+        {
+          path: '/admin/stats',
+          name: 'stats',
+          component: () => import('@/views/admin/StatsView.vue'),
+        },
       ],
     },
     {

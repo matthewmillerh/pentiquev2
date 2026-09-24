@@ -22,6 +22,9 @@
         <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/admin/edit-categories">
           Edit Categories
         </RouterLink>
+        <RouterLink class="main-nav-link rounded-lg p-3 transition-all" to="/admin/stats">
+          Stats
+        </RouterLink>
       </nav>
     </div>
   </div>

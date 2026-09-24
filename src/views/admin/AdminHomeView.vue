@@ -64,6 +64,7 @@ async function exportCatalogue() {
         :busy="exporting"
         @activate="exportCatalogue"
       />
+      <HomeActions image-src="/images/stats.svg" text="Stats" link="/admin/stats" />
     </div>
   </div>
 </template>
