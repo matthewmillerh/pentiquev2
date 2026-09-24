@@ -23,3 +23,14 @@
 .soft-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgb(30 41 59 / 0.38);
 }
+
+/* iOS Safari zooms the whole page in when a text field with text smaller than 16px is tapped. On touch screens form
+   fields therefore use at least 16px (fields with bigger text are left alone). Outside Tailwind's layers, so it
+   wins over text size classes like text-sm without needing !important. */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}

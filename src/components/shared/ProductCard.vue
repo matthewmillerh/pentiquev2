@@ -37,6 +37,8 @@ const { primaryThumbnail, handleImageError } = useProductImages(productRef)
         :src="primaryThumbnail"
         @error="handleImageError"
         class="max-h-full max-w-full self-center shadow-sm"
+        loading="lazy"
+        decoding="async"
         :alt="`${productDetails.productName}`"
         :key="`${productDetails.productID}-${productDetails.cacheKey || 0}`"
       />
