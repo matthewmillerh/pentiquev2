@@ -8,7 +8,6 @@ import ProductCard from '@/components/shared/ProductCard.vue'
 const route = useRoute()
 const query = computed(() => (typeof route.query.q === 'string' ? route.query.q.trim() : ''))
 const products = ref([])
-const more = ref(false) // there were more results than are shown
 const isLoading = ref(false)
 const error = ref('')
 
@@ -17,7 +16,6 @@ let latestRequest = 0 // only the newest search may update the page, in case ans
 async function search() {
   const request = ++latestRequest
   products.value = []
-  more.value = false
   error.value = ''
   if (query.value.length < 2) return
 
@@ -26,7 +24,6 @@ async function search() {
     const response = await axios_api.get('/products/search', { params: { q: query.value } })
     if (request !== latestRequest) return
     products.value = response.data.products
-    more.value = response.data.more
   } catch (err) {
     if (request !== latestRequest) return
     console.log('Error searching products:', err)
@@ -60,9 +57,6 @@ watch(query, search, { immediate: true })
     <template v-else>
       <p class="px-4 text-center text-sm">
         {{ products.length }} product{{ products.length === 1 ? '' : 's' }} found for “{{ query }}”
-        <span v-if="more">
-          (showing the first {{ products.length }}, add more words to narrow it down)
-        </span>
       </p>
       <div class="flex flex-wrap justify-center gap-5 p-4">
         <div v-for="product in products" :key="product.productID">
