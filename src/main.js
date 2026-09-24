@@ -39,6 +39,9 @@ import {
   faEyeSlash,
   faGrip,
   faList,
+  faRotateRight,
+  faTriangleExclamation,
+  faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithub,
@@ -91,6 +94,9 @@ library.add(
   faEyeSlash,
   faGrip,
   faList,
+  faRotateRight,
+  faTriangleExclamation,
+  faCircleCheck,
 )
 
 import App from './App.vue'
@@ -106,4 +112,3 @@ app.use(VueViewer)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.mount('#app')
-

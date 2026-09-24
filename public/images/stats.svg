@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Bar chart with a trend line">
+  <rect width="640" height="640" fill="#f0f0f0"/>
+  <g fill="none" stroke="#0f1a2a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- axes -->
+    <path d="M150 140 V490 H500"/>
+    <!-- bars -->
+    <rect x="200" y="380" width="50" height="110" rx="6"/>
+    <rect x="290" y="310" width="50" height="180" rx="6"/>
+    <rect x="380" y="340" width="50" height="150" rx="6"/>
+    <!-- trend line with an arrow -->
+    <path d="M200 290 L300 220 L360 250 L470 160"/>
+    <path d="M420 160 H470 V210"/>
+  </g>
+</svg>

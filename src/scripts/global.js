@@ -24,6 +24,7 @@ axios_api.interceptors.request.use(
       '/products/bulk-delete',
       '/admin/get-all-categories',
       '/admin/export/catalogue',
+      '/admin/stats',
     ]
 
     // Check if the current request URL matches any protected route
