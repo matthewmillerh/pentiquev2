@@ -22,6 +22,7 @@
     "jwt-decode": "^4.0.0",
     "pinia": "^2.3.1",
     "tailwindcss": "^4.1.7",
+    "three": "^0.186.1",
     "v-viewer": "^3.0.21",
     "viewerjs": "^1.11.7",
     "vue": "^3.5.13",
