@@ -161,17 +161,18 @@ export async function createArrivalScene(canvas, { onDone } = {}) {
   let stopPixel = null // where the page wants the car to stop, in pixels from the left of the canvas
 
   // carPixels: how long the car should be on screen
-  function resize(w, h, carPixels = 180) {
+  // ground: pixels from the bottom of the canvas to the road
+  function resize(w, h, carPixels = 180, ground = 80) {
     width = Math.max(1, Math.round(w))
     height = Math.max(1, Math.round(h))
     renderer.setSize(width, height, false)
     metresPerPixel = CAR_LENGTH / carPixels
-    // the road runs 20px above the bottom of the canvas
-    const ground = height - 20
+    // the road is `ground` pixels above the bottom of the canvas: a car turned towards the viewer reaches below it
+    const road = height - ground
     camera.left = (-width / 2) * metresPerPixel
     camera.right = (width / 2) * metresPerPixel
-    camera.top = ground * metresPerPixel
-    camera.bottom = -(height - ground) * metresPerPixel
+    camera.top = road * metresPerPixel
+    camera.bottom = -ground * metresPerPixel
     camera.updateProjectionMatrix()
     stopX = ((stopPixel ?? width / 2) - width / 2) * metresPerPixel
   }

@@ -17,14 +17,15 @@ let scene = null
 let unmounted = false
 let follow = 0
 
-const CANVAS_HEIGHT = 300 // px; the road is 20px above its bottom, the rest is room for the car and its smoke
+const CANVAS_HEIGHT = 340 // px: room for the car and its smoke above the road
+const BELOW_ROAD = 80 // px of canvas under the road, for the near corner of a car turned towards the viewer
 const carPixels = () => Math.min(240, Math.max(130, window.innerWidth * 0.2))
 
 // keep the road just under the heading's text (inside its bottom padding) while the page scrolls
 function followHeading() {
   if (props.heading && canvas.value) {
     const bottom = props.heading.getBoundingClientRect().bottom
-    canvas.value.style.top = `${Math.round(bottom - 24 + 20 - CANVAS_HEIGHT)}px`
+    canvas.value.style.top = `${Math.round(bottom - 24 + BELOW_ROAD - CANVAS_HEIGHT)}px`
   }
   follow = requestAnimationFrame(followHeading)
 }
@@ -48,7 +49,7 @@ function stopPixel() {
 }
 
 function layout() {
-  scene.resize(window.innerWidth, CANVAS_HEIGHT, carPixels())
+  scene.resize(window.innerWidth, CANVAS_HEIGHT, carPixels(), BELOW_ROAD)
   scene.setStop(stopPixel())
 }
 
