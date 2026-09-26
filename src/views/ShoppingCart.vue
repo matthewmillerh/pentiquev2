@@ -110,7 +110,7 @@ function setCheckoutButton(value) {
     <!-- on narrow screens there is no room for the car beside the title, so it stops underneath it -->
     <h1
       ref="heading"
-      class="px-3 pt-12 text-center text-xl font-semibold transition-[padding] duration-700 ease-out sm:text-2xl"
+      class="px-3 pt-8 text-center text-xl font-semibold transition-[padding] duration-700 ease-out sm:text-2xl"
       :class="showArrival && !arrived && carPlacement === 'below' ? 'pb-28' : 'pb-10'"
     >
       Your Shopping Cart
