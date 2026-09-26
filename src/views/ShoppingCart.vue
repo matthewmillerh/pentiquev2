@@ -53,6 +53,7 @@ const hasCar = computed(() => products.value.some(isCarProduct))
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 const heading = ref(null)
 const arrived = ref(false)
+const carPlacement = ref('beside') // where the car stops: 'beside' the title, or 'below' it on narrow screens
 const showArrival = computed(() => hasCar.value && !reducedMotion && !SHOW_FLYBY)
 
 //Sets the total value of the shopping cart
@@ -109,12 +110,17 @@ function setCheckoutButton(value) {
     <!-- on narrow screens there is no room for the car beside the title, so it stops underneath it -->
     <h1
       ref="heading"
-      class="px-3 pt-8 text-center text-xl font-semibold transition-[padding] duration-700 ease-out sm:text-2xl"
-      :class="showArrival && !arrived ? 'pb-28 md:pb-10' : 'pb-10'"
+      class="px-3 pt-12 text-center text-xl font-semibold transition-[padding] duration-700 ease-out sm:text-2xl"
+      :class="showArrival && !arrived && carPlacement === 'below' ? 'pb-28' : 'pb-10'"
     >
       Your Shopping Cart
     </h1>
-    <CarArrival v-if="showArrival && !arrived" :heading="heading" @done="arrived = true" />
+    <CarArrival
+      v-if="showArrival && !arrived"
+      :heading="heading"
+      @placement="carPlacement = $event"
+      @done="arrived = true"
+    />
   </div>
   <div class="px-4">
     <CarFlyby v-if="SHOW_FLYBY && hasCar" />

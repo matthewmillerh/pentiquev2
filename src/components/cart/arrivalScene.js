@@ -123,10 +123,11 @@ export async function createArrivalScene(canvas, { onDone } = {}) {
         d.age = 0
         d.life = 0.9 + Math.random() * 0.8
         d.size = 0.6 + Math.random() * 0.5
+        // tyre smoke rolls out along the road rather than rising
         d.velocity.set(
-          drift + (Math.random() - 0.5) * 1.2,
-          0.5 + Math.random() * 0.6,
-          (Math.random() - 0.2) * 1.2,
+          drift + (Math.random() - 0.5) * 1.4,
+          0.15 + Math.random() * 0.3,
+          (Math.random() - 0.2) * 1.4,
         )
         puff.visible = true
       }
@@ -146,7 +147,7 @@ export async function createArrivalScene(canvas, { onDone } = {}) {
       alive++
       d.velocity.multiplyScalar(1 - 1.8 * dt)
       puff.position.addScaledVector(d.velocity, dt)
-      puff.scale.setScalar(d.size * (1 + k * 2.6))
+      puff.scale.setScalar(d.size * (1 + k * 2))
       puff.material.opacity = 0.55 * Math.min(1, k * 8) * (1 - k) ** 1.4
     }
     return alive
