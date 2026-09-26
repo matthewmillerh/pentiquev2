@@ -3,7 +3,13 @@ import { onBeforeMount, ref, computed, defineAsyncComponent } from 'vue'
 import ProductCardCart from '@/components/ProductCardCart.vue'
 import { isCarProduct } from '@/utils/carProducts'
 // three.js and the car model are only downloaded when there is a car in the cart
+const CarArrival = defineAsyncComponent(() => import('@/components/cart/CarArrival.vue'))
 const CarFlyby = defineAsyncComponent(() => import('@/components/cart/CarFlyby.vue'))
+import CarModelCredit from '@/components/cart/CarModelCredit.vue'
+
+// The night-time fly-by banner above the cart (components/cart/CarFlyby.vue). Switched off for now in favour of the
+// car arriving on the page; set to true to bring it back.
+const SHOW_FLYBY = false
 import { saveCart, formatter, getCart } from '@/scripts/global'
 import { axios_api } from '@/scripts/global'
 
@@ -42,6 +48,12 @@ async function getProductByID(id, qty) {
 
 // a car in the cart brings on the fly-by banner
 const hasCar = computed(() => products.value.some(isCarProduct))
+
+// a car in the cart drives onto the page once (not for people who asked for less motion)
+const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+const heading = ref(null)
+const arrived = ref(false)
+const showArrival = computed(() => hasCar.value && !reducedMotion && !SHOW_FLYBY)
 
 //Sets the total value of the shopping cart
 const cartTotalValue = computed(() => {
@@ -93,9 +105,19 @@ function setCheckoutButton(value) {
 }
 </script>
 <template>
-  <h1 class="p-3 text-center text-lg font-semibold">Your Shopping Cart</h1>
+  <div class="relative">
+    <!-- on narrow screens there is no room for the car beside the title, so it stops underneath it -->
+    <h1
+      ref="heading"
+      class="px-3 pt-8 text-center text-xl font-semibold transition-[padding] duration-700 ease-out sm:text-2xl"
+      :class="showArrival && !arrived ? 'pb-28 md:pb-10' : 'pb-10'"
+    >
+      Your Shopping Cart
+    </h1>
+    <CarArrival v-if="showArrival && !arrived" :heading="heading" @done="arrived = true" />
+  </div>
   <div class="px-4">
-    <CarFlyby v-if="hasCar" />
+    <CarFlyby v-if="SHOW_FLYBY && hasCar" />
     <div v-for="(product, index) in products" :key="product.productID">
       <ProductCardCart
         :product="product"
@@ -113,6 +135,11 @@ function setCheckoutButton(value) {
         <p>
           Shopping Cart Total:
           <span class="font-semibold">{{ formatter.format(cartTotalValue) }}</span>
+        </p>
+        <!-- the 3D car's licence asks for a credit -->
+        <p v-if="showArrival" class="flex items-center gap-1 text-xs text-gray-400">
+          3D car credit
+          <CarModelCredit />
         </p>
       </div>
       <button
