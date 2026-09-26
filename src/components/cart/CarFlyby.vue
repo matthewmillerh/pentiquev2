@@ -1,11 +1,8 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { createFlybyScene } from './flybyScene'
 
 // The fly-by banner on the cart page, shown while there is a car in the cart
-const props = defineProps({
-  carNames: { type: Array, default: () => [] },
-})
 
 const box = ref(null)
 const canvas = ref(null)
@@ -16,8 +13,6 @@ const showCredit = ref(false)
 
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 const small = window.matchMedia?.('(max-width: 640px), (pointer: coarse)').matches ?? false
-
-const moreCars = computed(() => props.carNames.length - 1)
 
 let scene = null
 let resizeObserver = null
@@ -101,21 +96,6 @@ onBeforeUnmount(() => {
       :class="ready ? 'opacity-100' : 'opacity-0'"
       @click="scene?.replay()"
     ></canvas>
-
-    <!-- the cars in the cart -->
-    <div
-      class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pt-10 pb-3 sm:px-6 sm:pb-5"
-    >
-      <p class="text-[11px] font-semibold tracking-[0.2em] text-white/70 uppercase">
-        In your garage
-      </p>
-      <p class="max-w-[80%] truncate text-lg font-semibold text-white sm:text-2xl">
-        {{ carNames[0] }}
-      </p>
-      <p v-if="moreCars > 0" class="text-sm text-white/75">
-        and {{ moreCars }} more {{ moreCars === 1 ? 'car' : 'cars' }}
-      </p>
-    </div>
 
     <!-- the model's credit (CC-BY) -->
     <div class="absolute right-2 bottom-2 flex flex-col items-end gap-1 sm:right-3 sm:bottom-3">

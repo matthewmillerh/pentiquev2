@@ -1,5 +1,6 @@
-// The night-time fly-by shown above the cart when there is a car in it: a supercar tears past the camera on a wet
-// road, comes back round and settles into a slow tracking shot along a lit highway.
+// The night-time scene shown above the cart when there is a car in it: a supercar comes up the wet road towards a low
+// camera, which swings round and picks it up in one continuous move, settling into a slow tracking shot along a lit
+// highway.
 //
 // createFlybyScene(canvas, options) builds everything and returns a small controller. The caller owns the canvas and
 // must call dispose() when done; the WebGL context is released then.
@@ -15,8 +16,9 @@ const CAR_LENGTH = 4.8 // metres, an Aventador
 const LANE_Z = 1.7 // the lane the car drives in (the road runs along x, the camera is on the +z side)
 const CRUISE = 26 // metres per second the world streams past during the tracking shot
 
-// The intro, in seconds after the car has loaded
-const T = { flyStart: 0.35, flyEnd: 2.15, settleStart: 2.55, settleEnd: 5.6 }
+// The intro, in seconds after the car has loaded: the car appears in the distance at `start` and is in its tracking
+// position at `end`
+const T = { start: 0.4, end: 4.8 }
 
 const NIGHT = new THREE.Color('#060a15')
 const WARM = new THREE.Color('#ffc98a')
@@ -293,7 +295,7 @@ export async function createFlybyScene(
   fill.position.set(10, 6, 14)
   scene.add(fill)
   // follows the street lamp nearest the car, so the paint lights up as it passes under each one
-  const lampLight = new THREE.PointLight(WARM, 160, 26, 1.6)
+  const lampLight = new THREE.PointLight(WARM, 110, 26, 1.6)
   scene.add(lampLight)
 
   const glow = own(glowTexture())
@@ -398,7 +400,7 @@ export async function createFlybyScene(
     roughness: 0.6,
     metalness: 0.6,
   })
-  const headMaterial = new THREE.MeshBasicMaterial({ color: WARM.clone().multiplyScalar(5) })
+  const headMaterial = new THREE.MeshBasicMaterial({ color: WARM.clone().multiplyScalar(1.8) })
   const lamps = []
   for (let i = 0; i < LAMPS; i++) {
     const lamp = new THREE.Group()
@@ -408,13 +410,13 @@ export async function createFlybyScene(
     arm.position.set(0, 7.15, -5.5)
     const head = new THREE.Mesh(headGeometry, headMaterial)
     head.position.set(0, 7.05, -4.75)
-    const halo = sprite(WARM, 4.5, 0.9)
+    const halo = sprite(WARM, 1.9, 0.38)
     halo.position.set(0, 6.95, -4.75)
-    const lightPool = new THREE.Mesh(new THREE.PlaneGeometry(9, 12), additive(pool, WARM, 0.32))
+    const lightPool = new THREE.Mesh(new THREE.PlaneGeometry(9, 12), additive(pool, WARM, 0.2))
     lightPool.rotation.x = -Math.PI / 2
     lightPool.position.set(0, 0.01, -2.4)
     lightPool.renderOrder = 3
-    const reflection = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 9), additive(pool, WARM, 0.35))
+    const reflection = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 9), additive(pool, WARM, 0.2))
     reflection.rotation.x = -Math.PI / 2
     reflection.position.set(0, 0.012, 1.6)
     reflection.renderOrder = 3
@@ -464,7 +466,7 @@ export async function createFlybyScene(
       -12 - far * 22,
     )
     mesh.scale.y = 0.05 + Math.random() * 0.06
-    mesh.userData.strength = 0.4 + Math.random() * 0.6
+    mesh.userData.strength = 0.2 + Math.random() * 0.35
     mesh.userData.stretch = 0.25 + Math.random() * 0.4
     scene.add(mesh)
     streaks.push(mesh)
@@ -488,9 +490,9 @@ export async function createFlybyScene(
   const width = (bounds.max.z - bounds.min.z) / 2
   const headlights = []
   for (const side of [-1, 1]) {
-    const head = sprite(new THREE.Color('#dfe9ff').multiplyScalar(1.6), 0.3)
+    const head = sprite(new THREE.Color('#dfe9ff').multiplyScalar(1.2), 0.28)
     head.position.set(front, 0.55, side * (width - 0.35))
-    const tail = sprite(new THREE.Color('#ff2a2a').multiplyScalar(3), 0.45)
+    const tail = sprite(new THREE.Color('#ff2a2a').multiplyScalar(2), 0.35)
     tail.position.set(rear, 0.78, side * (width - 0.3))
     body.add(head, tail)
     headlights.push(head)
@@ -505,7 +507,7 @@ export async function createFlybyScene(
   }
   const beam = new THREE.Mesh(
     new THREE.PlaneGeometry(16, 5.5),
-    additive(pool, new THREE.Color('#cfe0ff'), 0.28),
+    additive(pool, new THREE.Color('#cfe0ff'), 0.16),
   )
   beam.rotation.set(-Math.PI / 2, 0, -Math.PI / 2)
   beam.position.set(front + 7.5, 0.015, 0)
@@ -527,7 +529,7 @@ export async function createFlybyScene(
   // ---- post processing: the glow on every light
   const composer = new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene, camera))
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), small ? 0.7 : 0.85, 0.55, 0.78)
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), small ? 0.38 : 0.45, 0.4, 0.88)
   composer.addPass(bloom)
   composer.addPass(new OutputPass())
 
@@ -553,7 +555,7 @@ export async function createFlybyScene(
   // ---- state
   let width_ = 1
   let height_ = 1
-  let time = reducedMotion ? T.settleEnd : 0 // seconds into the show
+  let time = reducedMotion ? T.end : 0 // seconds into the show
   let travel = 0 // how far the world has streamed past
   let carX = -200
   let lastCarX = carX
@@ -566,26 +568,18 @@ export async function createFlybyScene(
 
   function place(dt) {
     // where the car is and how fast the world streams by
-    let worldSpeed = 0
-    const cameraPose = { position: new THREE.Vector3(), target: new THREE.Vector3() }
-    if (time < T.settleStart) {
-      const f = clamp01((time - T.flyStart) / (T.flyEnd - T.flyStart))
-      // fast, a slow-motion moment right in front of the camera, then fast again
-      carX =
-        time < T.flyStart
-          ? -200
-          : -78 + 150 * (f + (0.72 * Math.sin(2 * Math.PI * f)) / (2 * Math.PI))
-      if (f >= 1) carX = 200
-      cameraPose.position.copy(flyPose.position)
-      cameraPose.target.copy(flyPose.target)
-    } else {
-      const g = clamp01((time - T.settleStart) / (T.settleEnd - T.settleStart))
-      carX = -40 * (1 - easeOutCubic(g))
-      worldSpeed = CRUISE * smooth(clamp01(g * 1.15))
-      const orbit = orbitPose(Math.max(0, time - T.settleEnd))
-      const k = easeInOutCubic(g)
-      cameraPose.position.lerpVectors(flyPose.position, orbit.position, k)
-      cameraPose.target.lerpVectors(flyPose.target, orbit.target, k)
+    // the car closes in from the distance while the world starts streaming by, so it goes from racing towards the
+    // camera to cruising beside it without a cut
+    const g = clamp01((time - T.start) / (T.end - T.start))
+    carX = -80 * (1 - easeOutCubic(g))
+    let worldSpeed = CRUISE * smooth(g)
+    // the camera waits for the car to come close, then swings round with it
+    const k = easeInOutCubic(clamp01((g - 0.12) / 0.88))
+    const orbit = orbitPose(Math.max(0, time - T.end))
+    orbit.target.x += carX
+    const cameraPose = {
+      position: new THREE.Vector3().lerpVectors(flyPose.position, orbit.position, k),
+      target: new THREE.Vector3().lerpVectors(flyPose.target, orbit.target, k),
     }
     if (reducedMotion) worldSpeed = 0
 
@@ -595,8 +589,7 @@ export async function createFlybyScene(
 
     // the car, a touch of suspension movement at speed, turning wheels
     rig.position.set(carX, 0, LANE_Z)
-    const cruising =
-      time > T.settleStart ? Math.sin(time * 8.3) * 0.006 + Math.sin(time * 2.1) * 0.004 : 0
+    const cruising = (Math.sin(time * 8.3) * 0.006 + Math.sin(time * 2.1) * 0.004) * smooth(g)
     body.position.y = cruising
     mirror.position.y = -cruising
     const groundSpeed = Math.min(relSpeed, 120) + worldSpeed
@@ -606,8 +599,8 @@ export async function createFlybyScene(
 
     const onScreenSpeed = Math.min(relSpeed, 140)
     for (const trail of trails) {
-      trail.scale.x = Math.min(10, onScreenSpeed * 0.1)
-      trail.material.opacity = clamp01(onScreenSpeed / 50) * 0.9
+      trail.scale.x = Math.min(5, onScreenSpeed * 0.07)
+      trail.material.opacity = clamp01(onScreenSpeed / 70) * 0.55
     }
 
     // scenery
@@ -627,21 +620,10 @@ export async function createFlybyScene(
     // headlights flare when they point at the camera
     const toCamera = cameraPose.position.clone().sub(rig.position).normalize()
     const facing = Math.max(0, toCamera.x)
-    for (const head of headlights) head.scale.setScalar(0.3 + facing ** 3 * 0.5)
+    for (const head of headlights) head.scale.setScalar(0.28 + facing ** 3 * 0.25)
 
-    // a shake as it roars past
-    const pass = time < T.settleStart ? Math.exp(-((carX - flyPose.position.x) ** 2) / 40) : 0
     camera.position.copy(cameraPose.position)
-    if (pass > 0.01) {
-      camera.position.x += (Math.random() - 0.5) * 0.08 * pass
-      camera.position.y += (Math.random() - 0.5) * 0.06 * pass
-    }
-    camera.lookAt(
-      cameraPose.target.x + (time >= T.settleStart ? carX * 0.9 : 0),
-      cameraPose.target.y,
-      cameraPose.target.z,
-    )
-    camera.fov = 38 + 5 * pass
+    camera.lookAt(cameraPose.target)
     camera.updateProjectionMatrix()
   }
 

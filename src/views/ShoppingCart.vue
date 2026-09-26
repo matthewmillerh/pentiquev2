@@ -40,10 +40,8 @@ async function getProductByID(id, qty) {
   }
 }
 
-// the names of the cars in the cart, for the fly-by banner
-const carNames = computed(() =>
-  products.value.filter(isCarProduct).map((product) => product.productName),
-)
+// a car in the cart brings on the fly-by banner
+const hasCar = computed(() => products.value.some(isCarProduct))
 
 //Sets the total value of the shopping cart
 const cartTotalValue = computed(() => {
@@ -97,7 +95,7 @@ function setCheckoutButton(value) {
 <template>
   <h1 class="p-3 text-center text-lg font-semibold">Your Shopping Cart</h1>
   <div class="px-4">
-    <CarFlyby v-if="carNames.length" :car-names="carNames" />
+    <CarFlyby v-if="hasCar" />
     <div v-for="(product, index) in products" :key="product.productID">
       <ProductCardCart
         :product="product"
