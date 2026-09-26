@@ -1,85 +1,74 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue'
-import emailjs from '@emailjs/browser'
-import { getCart } from '@/scripts/global'
-import { axios_api } from '@/scripts/global'
+import { ref, computed, onBeforeMount } from 'vue'
+import { getCart, saveCart, axios_api } from '@/scripts/global'
 import router from '@/router'
-import { saveCart } from '@/scripts/global'
 
 const deliveryMethod = ref(null)
 const form = ref(null)
-const shoppingCart = ref([])
-const products = ref([])
+const cartItems = ref([])
+const submitting = ref(false)
+const errorMessage = ref('')
+
+const cartIsEmpty = computed(() => cartItems.value.length === 0)
 
 onBeforeMount(() => {
-    shoppingCart.value = getCart()
-    getProducts()
+  cartItems.value = getCart() || []
 })
 
-//Get product information for each productID in the shopping cart
-function getProducts(){
-  shoppingCart.value.forEach(element => {
-      getProductByID(element.productID, element.quantity)
-  })
+// Send the order to the shop. The server looks up the products and prices itself, so only the cart's product ids
+// and quantities are sent, together with the customer's details.
+async function placeOrder() {
+  if (submitting.value || cartIsEmpty.value) return
+  errorMessage.value = ''
+
+  const data = new FormData(form.value)
+  const text = (name) => (data.get(name) ?? '').toString()
+  const method = text('delivery')
+
+  submitting.value = true
+  try {
+    const response = await axios_api.post('/orders', {
+      name: text('from_name'),
+      email: text('email'),
+      tel: text('tel'),
+      delivery: method,
+      address: text('address'),
+      postalCode: text('postal-code'),
+      province: text('province-state'),
+      country: text('country'),
+      // the branch is typed into a field named after the delivery method
+      branch: ['postnet', 'pep', 'pudo'].includes(method) ? text(method) : '',
+      note: text('note'),
+      website: text('website'), // a hidden field for bots, people leave it empty
+      items: cartItems.value.map(({ productID, quantity }) => ({ productID, quantity })),
+    })
+    orderSuccess(response.data)
+  } catch (error) {
+    console.log(error)
+    errorMessage.value =
+      error.response?.data?.message ||
+      'Your order could not be sent. Please check your connection and try again.'
+  } finally {
+    submitting.value = false
+  }
 }
 
-//Get the product from the database by the supplied productID
-async function getProductByID(id, qty) {
-    let productInfo = {}
-
-    try {
-      const response = await axios_api.get("/products/" + id)
-  
-      //add the quantity of the product in the cart to the product array
-      productInfo = response.data
-      productInfo['quantity'] = qty
-
-      //remove unnecessary info
-      delete productInfo.productFileName
-      delete productInfo.categoryID
-      delete productInfo.categoryName
-      delete productInfo.categoryPath
-      delete productInfo.productFeatured
-      delete productInfo.productSpecial
-      delete productInfo.productDescription
-      delete productInfo.productPosition1
-      delete productInfo.productPosition2
-      delete productInfo.productPosition3
-      delete productInfo.productHidden
-
-      products.value.push(productInfo)
-    } catch (err) {
-      console.log(err)
-    }
-}
-
-const sendMail = () => {
-  emailjs.sendForm('service_qg7afqq', 'template_dpf5t2n', form.value, 'RyIXXr7-ppm95PWre')
-  .then(() => {
-      orderSuccess()
-  }, (error) => {
-      alert('Message not sent', error)
-  })
-}
-
-function orderSuccess(){
-  router.push('/order-success')
+function orderSuccess({ ref, confirmationSent }) {
   emptyCart()
+  router.push({ path: '/order-success', query: { ref, ...(confirmationSent ? {} : { unconfirmed: '1' }) } })
 }
 
 //empty the entire cart
-function emptyCart(){
-  shoppingCart.value.length = 0
-  products.value.length = 0
+function emptyCart() {
+  cartItems.value = []
 
   //Save the updated cart array to localStorage
-  saveCart(shoppingCart.value)
+  saveCart([])
 }
-
 </script>
 <template>
   <h1 class="text-lg font-semibold p-3 text-center">Finalize Your Order</h1>
-  <form class="form" ref="form" @submit.prevent="sendMail">
+  <form class="form" ref="form" @submit.prevent="placeOrder">
     <div class="mx-auto w-4/5 pb-3">
       <div>
         <p class="font-semibold">Your Details</p>
@@ -127,7 +116,7 @@ function emptyCart(){
       </div>
       <div class="text-sm z-10 bg-blue-100 relative">
         <div class="py-1">
-          <input type="radio" name="delivery" id="collection" class="mr-2" v-model="deliveryMethod" value="collect" checked>
+          <input type="radio" name="delivery" id="collection" class="mr-2" v-model="deliveryMethod" value="collect" required>
           <label for="collection">Collect at 19 Rand Street, Durbanville, 7550 <span class="font-semibold">(Free)</span></label>
         </div>
         <div class="py-1">
@@ -311,14 +300,17 @@ function emptyCart(){
           After placing your order you will receive an automated email confirming your order. 
           Once the order has been processed and the shipping amount calculated you will receive an email with the invoice and payment instruction.
         </p>
-        <button type="submit" name="send" class="rounded bg-green-300 border border-green-400 shadow-md px-2 py-1 text-sm font-semibold mt-3">
-          Place Order
+        <p v-if="cartIsEmpty" class="text-sm mt-3">
+          Your cart is empty. <RouterLink to="/" class="underline">Continue shopping</RouterLink>
+        </p>
+        <p v-if="errorMessage" class="text-sm font-semibold text-red-700 mt-3" role="alert">{{ errorMessage }}</p>
+        <button type="submit" name="send" :disabled="submitting || cartIsEmpty" class="rounded bg-green-300 border border-green-400 shadow-md px-2 py-1 text-sm font-semibold mt-3 disabled:cursor-not-allowed disabled:opacity-60">
+          {{ submitting ? 'Placing your order…' : 'Place Order' }}
         </button>
       </div>
-      <!-- Hidden inputs that hold the order information to be sent in the email -->
-      <div class="w-full hidden" v-for="product in products" :key="product.productID">
-        <input class="w-full" type="text" name="products" 
-        :value="product.productID + ' - ' + product.productName + ' - R' + product.productPrice + ' - Quantity: ' + product.quantity">
+      <!-- Left empty by people. Bots fill in every field they find, which tells the server to ignore the order. -->
+      <div class="absolute -left-[9999px]" aria-hidden="true">
+        <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       </div>
     </div>
   </form>
