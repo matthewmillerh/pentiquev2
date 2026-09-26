@@ -62,7 +62,8 @@ function validateQuantity() {
 </script>
 
 <template>
-  <div class="mb-4 inline-flex">
+  <!-- picture and details side by side; on phones the details go under the picture -->
+  <div class="mb-6 flex flex-col items-start gap-3 sm:mb-4 sm:flex-row sm:gap-4">
     <RouterLink :to="'/product/' + product.productID + '/' + (product.categoryID ?? '')">
       <!-- a car: its picture stands in a small night showroom, on a glossy floor that streams by -->
       <div
@@ -95,7 +96,7 @@ function validateQuantity() {
         </div>
       </div>
     </RouterLink>
-    <div class="ml-4 flex w-96 max-w-[calc(100vw-16rem)] flex-col items-start">
+    <div class="flex w-full min-w-0 flex-col items-start sm:w-96">
       <RouterLink
         :to="'/product/' + product.productID + '/' + (product.categoryID ?? '')"
         class="mb-2 leading-snug font-semibold text-gray-900 transition-colors hover:text-blue-700"
