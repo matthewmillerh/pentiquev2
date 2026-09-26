@@ -1,51 +1,48 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { createArrivalScene } from './arrivalScene'
+import { carShow } from '@/composables/useCarShow'
 
-// A car drives onto the cart page along the heading, stops beside it, and races off again. Drawn on a see-through
-// canvas the width of the window, laid over the page level with the heading. It is drawn above everything, the menu
-// bar included, so neither the car nor its smoke is ever cut off (clicks go straight through it). Plays once, then removes itself.
-const props = defineProps({
-  // the heading the car stops beside
-  heading: { type: Object, default: null },
-})
-// placement: 'beside' the title or 'below' it (the page then makes room under the title)
-const emit = defineEmits(['done', 'placement'])
+// A car drives into the menu bar, slides to a stop where the logo is (the logo steps aside and the menu dims while
+// it is there), waits, and races off along the bar. The bar is always on screen, so the show is seen however far the
+// page has scrolled. Drawn on a see-through canvas over the bar: clicks go straight through to the menu. Plays once,
+// then removes itself.
+const emit = defineEmits(['done'])
 
 const canvas = ref(null)
 let scene = null
 let unmounted = false
 let follow = 0
+let giveBack = 0
 
-const CANVAS_HEIGHT = 340 // px: room for the car and its smoke above the road
-const BELOW_ROAD = 80 // px of canvas under the road, for the near corner of a car turned towards the viewer
-const carPixels = () => Math.min(240, Math.max(130, window.innerWidth * 0.2))
+const CANVAS_HEIGHT = 240 // px: room for the car and its smoke above the road
+const BELOW_ROAD = 60 // px of canvas under the road, for the near corner of a car turned towards the viewer
 
-// keep the road just under the heading's text (inside its bottom padding) while the page scrolls
-function followHeading() {
-  if (props.heading && canvas.value) {
-    const bottom = props.heading.getBoundingClientRect().bottom
-    canvas.value.style.top = `${Math.round(bottom - 24 + BELOW_ROAD - CANVAS_HEIGHT)}px`
+// the menu bar's logo marks the spot (MainNavMenu.vue)
+const spot = () => document.querySelector('[data-car-spot]')
+// a little bigger than the logo on wide screens; on phones, where the bar is tighter, about the logo's size
+const carPixels = () => {
+  const logo = spot()?.getBoundingClientRect()
+  const scale = window.innerWidth >= 1024 ? 1.35 : 1.05
+  return Math.min(170, Math.max(100, (logo?.width || 100) * scale))
+}
+
+// keep the road just above the bottom of the logo, so the car's near corner stays clear of the search box under it
+// on phones (the bar can change size, e.g. when the window is resized)
+const ROAD_ABOVE_LOGO_BOTTOM = 11
+function followSpot() {
+  const logo = spot()?.getBoundingClientRect()
+  if (logo && canvas.value) {
+    canvas.value.style.top = `${Math.round(logo.bottom - ROAD_ABOVE_LOGO_BOTTOM + BELOW_ROAD - CANVAS_HEIGHT)}px`
   }
-  follow = requestAnimationFrame(followHeading)
+  follow = requestAnimationFrame(followSpot)
 }
 
-// The empty space to the right of the heading's text
-function spaceBeside() {
-  const row = props.heading.getBoundingClientRect()
-  const range = document.createRange()
-  range.selectNodeContents(props.heading)
-  const text = range.getBoundingClientRect()
-  return { row, left: text.right, width: row.right - text.right }
-}
-const fitsBeside = () => !!props.heading && spaceBeside().width > carPixels() * 1.1 + 40
-
-// Where the car should stop: in the middle of the space beside the title when it fits there, otherwise under the
-// middle of the title. (The canvas starts at the left edge of the window, so its pixels are the window's.)
+// the car stops where the logo is, but never so close to the edge that its tail leaves the screen (the canvas starts
+// at the left edge of the window, so its pixels are the window's)
 function stopPixel() {
-  if (!props.heading) return window.innerWidth / 2
-  const space = spaceBeside()
-  return fitsBeside() ? space.left + space.width / 2 : space.row.left + space.row.width / 2
+  const logo = spot()?.getBoundingClientRect()
+  return Math.max(logo ? logo.left + logo.width / 2 : 80, carPixels() * 0.6 + 8)
 }
 
 function layout() {
@@ -54,15 +51,18 @@ function layout() {
 }
 
 onMounted(async () => {
-  // decided before the model loads, so the page has made any room it needs by the time the car arrives
-  emit('placement', fitsBeside() ? 'beside' : 'below')
   try {
-    const created = await createArrivalScene(canvas.value, { onDone: () => emit('done') })
+    const created = await createArrivalScene(canvas.value, {
+      // the logo comes back once the car has pulled clear of it
+      onLaunch: () => (giveBack = setTimeout(() => (carShow.active = false), 350)),
+      onDone: () => emit('done'),
+    })
     if (unmounted) return created.dispose()
     scene = created
     if (import.meta.env.DEV) window.__arrival = created // for looking at single frames while working on it
     layout()
-    followHeading()
+    followSpot()
+    carShow.active = true // the logo fades out while the car is on its way in
     scene.start()
     window.addEventListener('resize', layout)
   } catch (error) {
@@ -74,6 +74,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   unmounted = true
+  clearTimeout(giveBack)
+  carShow.active = false
   cancelAnimationFrame(follow)
   window.removeEventListener('resize', layout)
   scene?.dispose()

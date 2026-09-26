@@ -1,6 +1,7 @@
 // The car's arrival on the cart page: drawn on a see-through canvas over the page itself, the car drives in from the
 // left, brakes into a slide (tail out, nose down, tyre smoke), comes to rest at an angle, waits two seconds, then
-// launches off the right-hand side. It plays once; `onDone` is called when the car has gone and the smoke has cleared.
+// launches off the right-hand side. It plays once: `onLaunch` is called as it pulls away, `onDone` when the car has
+// gone and the smoke has cleared.
 //
 // The camera is orthographic and only tilted, so a point on the road maps straight to a pixel across the canvas:
 // the page can say where the car should stop in pixels.
@@ -31,7 +32,7 @@ const softTexture = () =>
     g.fillRect(0, 0, w, w)
   })
 
-export async function createArrivalScene(canvas, { onDone } = {}) {
+export async function createArrivalScene(canvas, { onLaunch, onDone } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
   renderer.setClearColor(0x000000, 0)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
@@ -257,7 +258,9 @@ export async function createArrivalScene(canvas, { onDone } = {}) {
     frame = requestAnimationFrame(tick)
     const dt = tick.last ? Math.min((now - tick.last) / 1000, 1 / 20) : 0
     tick.last = now
+    const before = time
     time += dt
+    if (before < LAUNCH && time >= LAUNCH) onLaunch?.()
     const done = place(dt)
     renderer.render(scene, camera)
     if (done && !finished) {

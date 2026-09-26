@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import { carShow } from '@/composables/useCarShow'
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 import Close from 'vue-material-design-icons/Close.vue'
 import MainNavItem from './shared/buttons/MainNavItem.vue'
@@ -70,18 +71,23 @@ function closeMenuOnNav() {
       class="fixed top-0 right-0 left-0 z-50 border-b border-blue-200/80 bg-blue-100/70 p-3 shadow-lg shadow-blue-900/5 backdrop-blur-xl lg:top-5 lg:right-6 lg:left-6 lg:rounded-2xl lg:border lg:bg-blue-100/60"
     >
       <div class="flex items-center gap-x-4">
-        <!-- Company logo -->
+        <!-- Company logo. It steps aside while a car from the cart pulls up in its place (see carShow). -->
         <RouterLink to="/" class="shrink-0" @click="closeMenuOnNav">
           <img
             alt="Pentique logo"
             src="/images/logo.png"
             width="100"
-            class="drop-shadow-md drop-shadow-blue-400"
+            data-car-spot
+            class="drop-shadow-md drop-shadow-blue-400 transition-opacity duration-700 ease-in-out"
+            :class="carShow.active ? 'opacity-0' : 'opacity-100'"
           />
         </RouterLink>
 
         <!-- Main menu items -->
-        <nav class="hidden gap-1 p-1 lg:flex">
+        <nav
+          class="hidden gap-1 p-1 transition-opacity duration-700 ease-in-out lg:flex"
+          :class="carShow.active ? 'opacity-40' : 'opacity-100'"
+        >
           <MainNavItem :icon="['fas', 'house']" label="Home" link="/" @click="closeMenuOnNav" />
 
           <MainNavItem
@@ -114,12 +120,18 @@ function closeMenuOnNav() {
         </nav>
 
         <!-- Search, on the right on big screens -->
-        <div class="ml-auto hidden w-56 lg:block xl:w-80">
+        <div
+          class="ml-auto hidden w-56 transition-opacity duration-700 ease-in-out lg:block xl:w-80"
+          :class="carShow.active ? 'opacity-40' : 'opacity-100'"
+        >
           <StoreSearchBox input-id="store-search-desktop" />
         </div>
 
         <!-- Mobile menu icons -->
-        <div class="z-50 ml-auto flex items-center pr-2 lg:hidden">
+        <div
+          class="z-50 ml-auto flex items-center pr-2 transition-opacity duration-700 ease-in-out lg:hidden"
+          :class="carShow.active ? 'opacity-40' : 'opacity-100'"
+        >
           <Transition name="mobileMenuButton" mode="out-in">
             <button
               v-if="!props.showMobileMenu"
