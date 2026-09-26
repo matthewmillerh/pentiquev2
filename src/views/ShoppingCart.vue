@@ -1,6 +1,9 @@
 <script setup>
-import { onBeforeMount, ref, computed } from 'vue'
+import { onBeforeMount, ref, computed, defineAsyncComponent } from 'vue'
 import ProductCardCart from '@/components/ProductCardCart.vue'
+import { isCarProduct } from '@/utils/carProducts'
+// three.js and the car model are only downloaded when there is a car in the cart
+const CarFlyby = defineAsyncComponent(() => import('@/components/cart/CarFlyby.vue'))
 import { saveCart, formatter, getCart } from '@/scripts/global'
 import { axios_api } from '@/scripts/global'
 
@@ -36,6 +39,11 @@ async function getProductByID(id, qty) {
     console.log(err)
   }
 }
+
+// the names of the cars in the cart, for the fly-by banner
+const carNames = computed(() =>
+  products.value.filter(isCarProduct).map((product) => product.productName),
+)
 
 //Sets the total value of the shopping cart
 const cartTotalValue = computed(() => {
@@ -89,6 +97,7 @@ function setCheckoutButton(value) {
 <template>
   <h1 class="p-3 text-center text-lg font-semibold">Your Shopping Cart</h1>
   <div class="px-4">
+    <CarFlyby v-if="carNames.length" :car-names="carNames" />
     <div v-for="(product, index) in products" :key="product.productID">
       <ProductCardCart
         :product="product"
