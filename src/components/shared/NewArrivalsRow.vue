@@ -49,33 +49,48 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 </script>
 
 <template>
-  <section v-if="isLoading || products.length" class="px-4 pt-4">
-    <h1 class="flex justify-center pb-3">
+  <div v-if="isLoading || products.length" class="px-4 pt-4">
+    <!-- Its own card, spanning the full row, so it reads as a section rather than blending into the category
+    grid below (which looks the same shade of blue as every product card). The whole header opens the full page. -->
+    <section
+      class="overflow-hidden rounded-2xl border border-pink-200/70 bg-gradient-to-br from-pink-50/80 via-amber-50/50 to-blue-50/70 shadow-md shadow-pink-900/5"
+    >
       <RouterLink
         to="/new-arrivals"
-        class="max-w-full rounded-3xl bg-white/40 px-5 py-2 text-center text-xl leading-snug font-semibold text-balance break-words shadow-md transition-colors hover:bg-white/60 sm:px-6 sm:text-2xl"
+        class="flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-200 hover:bg-white/35 sm:px-5"
       >
-        New Arrivals
+        <h1 class="flex min-w-0 items-center gap-2 text-lg font-semibold text-gray-900 sm:text-xl">
+          <font-awesome-icon icon="star" class="shrink-0 text-base text-amber-500" />
+          <span class="truncate">New Arrivals</span>
+        </h1>
+        <span class="flex shrink-0 items-center gap-1 text-sm font-medium text-gray-600">
+          See all
+          <font-awesome-icon icon="chevron-right" class="text-xs" />
+        </span>
       </RouterLink>
-    </h1>
 
-    <div ref="row" class="flex justify-center gap-5 overflow-hidden">
-      <template v-if="isLoading">
-        <div
-          v-for="n in fitCount"
-          :key="n"
-          class="h-[15.5rem] w-52 max-w-52 shrink-0 animate-pulse rounded-xl bg-blue-100/60"
-        ></div>
-      </template>
-      <RouterLink
-        v-else
-        v-for="product in products.slice(0, fitCount)"
-        :key="product.productID"
-        :to="`/product/${product.productID}/${product.categoryID}`"
-        class="shrink-0"
-      >
-        <ProductCard :productDetails="product" />
-      </RouterLink>
-    </div>
-  </section>
+      <!-- the padding lives here, not on the measured row itself, so its clientWidth is exactly the space cards
+      have to lay out in -->
+      <div class="px-4 pb-4 sm:px-5">
+        <div ref="row" class="flex justify-center gap-5 overflow-hidden">
+          <template v-if="isLoading">
+            <div
+              v-for="n in fitCount"
+              :key="n"
+              class="h-[15.5rem] w-52 max-w-52 shrink-0 animate-pulse rounded-xl bg-white/50"
+            ></div>
+          </template>
+          <RouterLink
+            v-else
+            v-for="product in products.slice(0, fitCount)"
+            :key="product.productID"
+            :to="`/product/${product.productID}/${product.categoryID}`"
+            class="shrink-0"
+          >
+            <ProductCard :productDetails="product" />
+          </RouterLink>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
