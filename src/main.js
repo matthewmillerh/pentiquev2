@@ -42,6 +42,7 @@ import {
   faRotateRight,
   faTriangleExclamation,
   faCircleCheck,
+  faStar,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faGithub,
@@ -97,6 +98,7 @@ library.add(
   faRotateRight,
   faTriangleExclamation,
   faCircleCheck,
+  faStar,
 )
 
 import App from './App.vue'
